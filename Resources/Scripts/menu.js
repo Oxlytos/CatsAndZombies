@@ -1,5 +1,5 @@
 function leaveGame(){
-    window.location.href = "https://google.com";
+    window.location.href = "https://github.com/Oxlytos/CatsAndZombies";
 }
 function startGame(){
     document.getElementById("mainMenu").remove();

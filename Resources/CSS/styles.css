@@ -46,6 +46,33 @@ li {
     text-align: left;
     margin: 0;
 }
+.gridElement{
+    width: 50%;
+}
+
+.gameTable{
+    background-color: orange;
+    width: 10%;
+}
+.gameTable_td{
+    background-color: rgba(255, 255, 0, 0.1);
+    border: 5px red;
+     transition-duration: 0.1s;
+}
+.gameTable_td:hover{
+    transform: scale(1.5);
+}
+.gameButton{
+      font-family: 'Open-Dyslexic', sans-serif;
+      font-size: 40px;
+    color: white;
+    background-color: black;
+}
+.active-player-in-cell{
+    background-color: rebeccapurple;
+    border: 25px;
+    border-color: yellow;
+}
 
 .center {
     display: flex;
