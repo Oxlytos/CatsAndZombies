@@ -3,6 +3,7 @@ let gameArea = new Array();
 
 //the graphics
 const cellMap = [];
+const activeEntities = [];
 let mainGameWindow;
 
 let entityImage;
@@ -18,17 +19,36 @@ const sizeParameter = 5;
 let playerPos = [0, 0];
 
 class Entity {
-    constructor(name, imgSrc, hp, attack) {
+    constructor(name, imgSrc, hp, attack, posX, posY) {
         this.name = name;
         this.imgSrc = imgSrc;
         this.hp = hp;
         this.attack = attack;
+        this.posX=posX;
+        this.posY=posY;
+    }
+
+    move(zombie){
+        let valid = zombie.name.includes("O");
+        console.log(valid);
+        if(valid){
+            //alert("move")
+            console.log(zombie);
+            console.log("Moving entity: " + "Id: " + zombie.id + ", Name: " + this.name + "Pos X: " + this.posX + " Pos Y: " + this.posY)
+            console.log("Old pos:" + this.posX)
+            console.log("Zombie old pos" + zombie.posX)
+            zombie.posX++;
+            console.log("New pos:" + this.posX)
+            console.log("Zombie new pos" + zombie.posX)
+
+        }
     }
 
 }
+
 const entityTypes =
     [
-        new Entity("Oscar", "/Resources/Imgs/me.png", 5, 1),
+        new Entity("Oscar", "/Resources/Imgs/me.png", 5, 1, 0,0),
         new Entity("Cat", "/Resources/Imgs/car.png", 99, 99),
         new Entity("Nothing", "",0,0)
     ]
@@ -74,20 +94,26 @@ function fillGameArea() {
     buildGameArray();
 
     //render table
+     let zombieNumber = 0;
     for (let i = 0; i < gameArea.length; i++) {
 
         cellMap[i] = [];
         //X
         const tr = document.createElement("tr");
+       
         for (let y = 0; y < gameArea[i].length; y++) {
             //Y
-
+            zombieNumber++;
             //each cell
             //basic styling
             const td = document.createElement("td");
             //td.textContent = gameArea[i][y];
             td.classList.add("gameTable_td")
-            const entity = getRandomEntity();
+            let entity = getRandomEntity(zombieNumber);
+
+            //entity.name += zombieNumber
+            //entity.id === y;
+            activeEntities.push(getRandomEntity());
 
             //each cell has some kind of entity
             td.entity = entity;
@@ -105,6 +131,7 @@ function fillGameArea() {
     }
     gameDiv.appendChild(gameTable);
 
+    //console.log("Entities"  + activeEntities)
     playerPos[0] = 2;
     playerPos [1] = 2;
     buildPlayerButton();
@@ -136,10 +163,10 @@ function buildPlayerButton() {
 
 
     //buttons
-    var nBut = buildCoordinalDirectionButton("Go North", goNorth)
-    var sBut = buildCoordinalDirectionButton("Go South", goSouth);
-    var wBut = buildCoordinalDirectionButton("Go West", goWest);
-    var eBut = buildCoordinalDirectionButton("Go East", goEast);
+    var nBut = buildCoordinalDirectionButton("(N) Gå norr", goNorth)
+    var sBut = buildCoordinalDirectionButton("(S) Gå söder", goSouth);
+    var wBut = buildCoordinalDirectionButton("(V) Gå väster", goWest);
+    var eBut = buildCoordinalDirectionButton("(Ö) Gå öster", goEast);
 
     buttonMap.appendChild(nBut);
     buttonMap.appendChild(sBut);
@@ -152,10 +179,24 @@ function buildPlayerButton() {
     buttonMap.rows[2].cells[1].appendChild(sBut); // bottom middle
 }
 
+//Start new turn from here
 function movePlayer(oldPos, newPos) {
+    newTurn();
     cellMap[oldPos[0]][oldPos[1]].classList.remove("active-player-in-cell");
     cellMap[newPos[0]][newPos[1]].classList.add("active-player-in-cell");
     updateGameScene();
+}
+
+function newTurn(){
+
+    alert("New turn")
+    console.log("New turn")
+    //activeEntities.forEach(e=>e.move(),this);
+
+    //activeEntities.map(function(thisEntity) {thisEntity.move();})
+    activeEntities.forEach(e => e.move(e));
+    //dogs.forEach(dog => dog.sayName());
+    //dogs.map(function(thisDog) { thisDog.sayName(); })
 }
 
 function updateGameScene(){
@@ -212,13 +253,27 @@ function buildGameArray() {
     console.log(gameArea)
 }
 
-function getRandomEntity() {
+function getRandomEntity(id) {
 
+    //Använd new entity med ctor
+    let newEntity = {}
     //Random based on available entities
     const index = Math.floor(Math.random() * entityTypes.length);
 
+    const randomX = Math.floor(Math.random() * gameArea[0].length);
+    const randomY = Math.floor(Math.random() * gameArea[1].length);
+
     //Return from that index => can return cat
-    return entityTypes[index];
+    let entity =  entityTypes[index];
+    entity.id= id;
+
+    console.log("Created enetity: " + entity.id + " " + entity.name)
+
+    console.log("Entity name: " + this.name + " X: " + randomX + " Y: " + randomY)
+    
+    entity.posX=randomX;
+    entity.posY=randomY;
+    return entity;
 }
 
 function getEntityImage(entity) {
