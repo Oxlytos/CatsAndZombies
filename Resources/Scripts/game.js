@@ -3,8 +3,12 @@ let gameArea = new Array();
 
 //the graphics
 const cellMap = [];
-
 let mainGameWindow;
+
+let entityImage;
+let entityName;
+let entityHp;
+let entityAttack;
 
 //specify size
 const sizeParameter = 5;
@@ -26,6 +30,7 @@ const entityTypes =
     [
         new Entity("Oscar", "/Resources/Imgs/me.png", 5, 1),
         new Entity("Cat", "/Resources/Imgs/car.png", 99, 99),
+        new Entity("Nothing", "",0,0)
     ]
 
 //Fill at start
@@ -37,8 +42,28 @@ function fillGameArea() {
     //Clear at start
     gameDiv.innerHTML = "";
 
-    mainGameWindow = new Image(400,400);
-    gameDiv.appendChild(mainGameWindow);
+    const imageHolder = document.createElement("div");
+    imageHolder.style.display = "grid";
+    imageHolder.style.placeItems = "center"; 
+
+    //Big background
+    mainGameWindow = new Image();
+    mainGameWindow.classList.add("gameScreen");
+    mainGameWindow.src = "/Resources/Imgs/bgMagic.png";
+    mainGameWindow.style.gridArea = "1 / 1";
+    mainGameWindow.style.zIndex = "1";
+
+
+    entityImage = new Image();
+    entityImage.classList.add("entityImage");
+    entityImage.src = "/Resources/Imgs/car.png"; 
+    entityImage.style.gridArea = "1 / 1";
+    entityImage.style.zIndex = "5";
+
+    imageHolder.appendChild(mainGameWindow);
+    imageHolder.appendChild(entityImage);
+
+    gameDiv.appendChild(imageHolder);
 
     //Table to place stuff on
     const gameTable = document.createElement("table");
@@ -80,6 +105,8 @@ function fillGameArea() {
     }
     gameDiv.appendChild(gameTable);
 
+    playerPos[0] = 2;
+    playerPos [1] = 2;
     buildPlayerButton();
 
 }
@@ -108,13 +135,11 @@ function buildPlayerButton() {
     gameDiv.appendChild(buttonMap);
 
 
-    //north
+    //buttons
     var nBut = buildCoordinalDirectionButton("Go North", goNorth)
     var sBut = buildCoordinalDirectionButton("Go South", goSouth);
     var wBut = buildCoordinalDirectionButton("Go West", goWest);
     var eBut = buildCoordinalDirectionButton("Go East", goEast);
-
-    
 
     buttonMap.appendChild(nBut);
     buttonMap.appendChild(sBut);
@@ -126,35 +151,48 @@ function buildPlayerButton() {
     buttonMap.rows[1].cells[2].appendChild(eBut); // middle right
     buttonMap.rows[2].cells[1].appendChild(sBut); // bottom middle
 }
+
 function movePlayer(oldPos, newPos) {
     cellMap[oldPos[0]][oldPos[1]].classList.remove("active-player-in-cell");
     cellMap[newPos[0]][newPos[1]].classList.add("active-player-in-cell");
     updateGameScene();
 }
+
 function updateGameScene(){
-    mainGameWindow.src = cellMap[playerPos[0]][playerPos[1]].entity.imgSrc;
+    entityImage.src = cellMap[playerPos[0]][playerPos[1]].entity.imgSrc;
 }
 function goNorth() {
-    const oldPos = Array.from(playerPos);;
-    playerPos[0] -= 1;
-    movePlayer(oldPos, playerPos);
+    if (playerPos[0] - 1 >= 0) {
+        const oldPos = Array.from(playerPos);;
+        playerPos[0] -= 1;
+        movePlayer(oldPos, playerPos);
+    }
+}
+function goSouth() {
+    if (playerPos[0] + 1 < cellMap[0].length) {
+        const oldPos = Array.from(playerPos);;
+        playerPos[0] += 1;
+        movePlayer(oldPos, playerPos);
+    }
 
 }
 function goWest() {
-    const oldPos = Array.from(playerPos);;
-    playerPos[1] -= 1;
-    movePlayer(oldPos, playerPos);
+    if(playerPos[1] - 1 >= 0){
+        const oldPos = Array.from(playerPos);;
+        playerPos[1] -= 1;
+        movePlayer(oldPos, playerPos);
+    }
+   
 }
 function goEast() {
-    const oldPos = Array.from(playerPos);;
-    playerPos[1] += 1;
-    movePlayer(oldPos, playerPos);
+    if (playerPos[1] + 1 < gameArea[0].length) {
+        const oldPos = Array.from(playerPos);;
+        playerPos[1] += 1;
+        movePlayer(oldPos, playerPos);
+    }
+
 }
-function goSouth() {
-    const oldPos = Array.from(playerPos);;
-    playerPos[0] += 1;
-    movePlayer(oldPos, playerPos);
-}
+
 function buildGameArray() {
     //X axis, rows
     for (var i = 0; i < sizeParameter; i++) {

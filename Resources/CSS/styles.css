@@ -49,13 +49,23 @@ li {
 .gridElement{
     width: 50%;
 }
-
+.gameScreen{
+    border-radius: 20px;
+    filter: blur(20px);
+}
+.entityImage{
+        border-radius: 20px;
+    transition: 0.2s;
+}
+.entityImage:hover{
+transform: scale(1.1);
+}
 .gameTable{
-    background-color: orange;
+    background-color: rgb(0, 0, 0);
     width: 10%;
 }
 .gameTable_td{
-    background-color: rgba(255, 255, 0, 0.1);
+    background-color: rgb(71, 71, 71);
     border: 5px red;
      transition-duration: 0.1s;
 }
@@ -69,9 +79,8 @@ li {
     background-color: black;
 }
 .active-player-in-cell{
-    background-color: rebeccapurple;
+    background-color: rgb(11, 146, 16);
     border: 25px;
-    border-color: yellow;
 }
 
 .center {
