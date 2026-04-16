@@ -50,6 +50,9 @@ li {
     width: 50%;
 }
 .gameScreen{
+    min-width: 520px;
+    max-width: 960px;
+    width: auto;
     border-radius: 20px;
     filter: blur(20px);
 }
@@ -61,13 +64,23 @@ li {
 transform: scale(1.1);
 }
 .gameTable{
+      table-layout: fixed;
     background-color: rgb(0, 0, 0);
     width: 10%;
 }
 .gameTable_td{
-    background-color: rgb(71, 71, 71);
-    border: 5px red;
-     transition-duration: 0.1s;
+    width: 32px;
+    height: 32px;
+      border-style: none;
+    padding: 15;
+    margin: 0;
+    overflow: hidden;
+}
+.gameTable_td img{
+     width: 100%;
+     height: 100%;
+    border: none;
+    border-style: none;
 }
 .gameTable_td:hover{
     transform: scale(1.5);

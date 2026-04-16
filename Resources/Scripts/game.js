@@ -6,10 +6,15 @@ const cellMap = [];
 const activeEntities = [];
 let mainGameWindow;
 
+let spawnThisManyEntities = 20;
+
+
 let entityImage;
 let entityName;
 let entityHp;
 let entityAttack;
+
+let cardinalDirections = ["North", "West", "South", "East"];
 
 //specify size
 const sizeParameter = 5;
@@ -19,41 +24,55 @@ const sizeParameter = 5;
 let playerPos = [0, 0];
 
 class Entity {
-    constructor(name, imgSrc, hp, attack, posX, posY) {
+    constructor(id, name, imgSrc, hp, attack, posX, posY,spawnChance) {
+        this.id = id
         this.name = name;
         this.imgSrc = imgSrc;
         this.hp = hp;
         this.attack = attack;
         this.posX=posX;
         this.posY=posY;
+        this.spawnChance = spawnChance;
     }
 
-    move(zombie){
-        let valid = zombie.name.includes("O");
-        console.log(valid);
+    move(priorToMovementSnap, reservedSpots){
+        //Handle enteties we want to move, i e zombies or other
+        let valid = this.name.includes("O");
         if(valid){
-            //alert("move")
-            console.log(zombie);
-            console.log("Moving entity: " + "Id: " + zombie.id + ", Name: " + this.name + "Pos X: " + this.posX + " Pos Y: " + this.posY)
-            console.log("Old pos:" + this.posX)
-            console.log("Zombie old pos" + zombie.posX)
-            zombie.posX++;
-            console.log("New pos:" + this.posX)
-            console.log("Zombie new pos" + zombie.posX)
+            moveToUnoccupiedSpot(this, priorToMovementSnap, reservedSpots);
 
         }
     }
 
 }
 
-const entityTypes =
-    [
-        new Entity("Oscar", "/Resources/Imgs/me.png", 5, 1, 0,0),
-        new Entity("Cat", "/Resources/Imgs/car.png", 99, 99),
-        new Entity("Nothing", "",0,0)
-    ]
+const entityTypes = [
+    {
+        name: "Oscar",
+        imgSrc: "/Resources/Imgs/zombie.png",
+        hp: 5,
+        attack: 1,
+        spawnChance:0.2
+    },
+    {
+        name: "Cat",
+        imgSrc: "/Resources/Imgs/car.png",
+        hp: 99,
+        attack: 99,
+        spawnChance:0.7
+    },
+    {
+        name: "Traveler",
+        imgSrc: "/Resources/Imgs/notme.png",
+        hp: 99,
+        attack: 99,
+        spawnChance:0.7
+    },
+    
+];
 
 //Fill at start
+
 function fillGameArea() {
 
     //Game container 
@@ -76,7 +95,6 @@ function fillGameArea() {
 
     entityImage = new Image();
     entityImage.classList.add("entityImage");
-    entityImage.src = "/Resources/Imgs/car.png"; 
     entityImage.style.gridArea = "1 / 1";
     entityImage.style.zIndex = "5";
 
@@ -91,44 +109,34 @@ function fillGameArea() {
     gameTable.classList.add("gameTable");
 
     //Constructs array
-    buildGameArray();
+    buildGameArray()
 
     //render table
-     let zombieNumber = 0;
-    for (let i = 0; i < gameArea.length; i++) {
+    for (let i = 0; i < sizeParameter; i++) {
 
         cellMap[i] = [];
         //X
         const tr = document.createElement("tr");
        
-        for (let y = 0; y < gameArea[i].length; y++) {
-            //Y
-            zombieNumber++;
+        for (let y = 0; y < sizeParameter; y++) {
             //each cell
             //basic styling
             const td = document.createElement("td");
-            //td.textContent = gameArea[i][y];
             td.classList.add("gameTable_td")
-            let entity = getRandomEntity(zombieNumber);
 
-            //entity.name += zombieNumber
-            //entity.id === y;
-            activeEntities.push(getRandomEntity());
-
-            //each cell has some kind of entity
-            td.entity = entity;
-
-            const entityImage = getEntityImage(entity);
-
-            td.appendChild(entityImage);
+            const tdImg =  document.createElement("img");
+            tdImg.width=32;
+            td.appendChild(tdImg);
 
             //this cell on x,y
-            cellMap[i][y] = td
+            cellMap[i][y] = tdImg
 
             tr.appendChild(td);
         }
         gameTable.append(tr);
     }
+    createEntities();
+    redrawEntities();
     gameDiv.appendChild(gameTable);
 
     //console.log("Entities"  + activeEntities)
@@ -136,6 +144,76 @@ function fillGameArea() {
     playerPos [1] = 2;
     buildPlayerButton();
 
+}
+function moveToUnoccupiedSpot(movingEntity, priorToMovementSnap, reservedSpots)
+{
+    //Copy array
+    const directions = [...cardinalDirections];
+    //Fisher yates random function
+    //https://www.w3schools.com/js/tryit.asp?filename=tryjs_array_sort_random2
+    for (let i = directions.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        let k = directions[i];
+
+        directions[i] = directions[j];
+        directions[j] = k;
+    }
+
+    for(const direction of directions){
+
+        let newPosX = movingEntity.posX;
+        let newPosY = movingEntity.posY;
+
+        if(direction=="North"){
+            newPosY--;
+        }
+        if(direction=="South"){
+            newPosY++;
+        }
+        if(direction=="West"){
+            newPosX--;
+        }
+        if(direction=="East"){
+            newPosX++;
+        }
+
+        //Within bounds
+        if (
+            newPosX < 0 || newPosY < 0 ||
+            newPosX >= sizeParameter ||
+            newPosY >= sizeParameter
+        ) {
+            continue;
+        }
+
+        //Occupied slot
+        const occupied = priorToMovementSnap.find(e => e.x === newPosX && e.y === newPosY);
+
+        //Not occupied
+        if(!occupied && !reservedSpots[newPosX][newPosY]){
+            movingEntity.posX=newPosX;
+            movingEntity.posY=newPosY;
+
+            //This spot is now occupied
+            reservedSpots[newPosX][newPosY] = true;
+            return;
+        }
+
+        //Stay still
+    }
+    
+}
+function createEntities() {
+    let entityId = 0;
+    for (let i = 0; i < spawnThisManyEntities; i++) {
+
+        entityId++;
+        let entity = getRandomEntity(entityId);
+        //roll to create, if its to low, don't create
+        if (entity != null) {
+            activeEntities.push(entity);
+        }
+    }
 }
 
 function buildCoordinalDirectionButton(string, handler) {
@@ -182,25 +260,60 @@ function buildPlayerButton() {
 //Start new turn from here
 function movePlayer(oldPos, newPos) {
     newTurn();
-    cellMap[oldPos[0]][oldPos[1]].classList.remove("active-player-in-cell");
-    cellMap[newPos[0]][newPos[1]].classList.add("active-player-in-cell");
+    cellMap[oldPos[0]][oldPos[1]].parentElement.classList.remove("active-player-in-cell");
+    
     updateGameScene();
+    cellMap[newPos[0]][newPos[1]].parentElement.classList.add("active-player-in-cell");
 }
 
 function newTurn(){
+     const priorToMovementSnap = activeEntities.map(e => ({
+        x: e.posX, //all entiteis cords
+        y: e.posY,
+    }));
 
-    alert("New turn")
-    console.log("New turn")
-    //activeEntities.forEach(e=>e.move(),this);
+    const reservedSpots = Array.from(
+        {
+            length: sizeParameter
+        },
+        () => Array(sizeParameter).fill(false)
+    );
 
-    //activeEntities.map(function(thisEntity) {thisEntity.move();})
-    activeEntities.forEach(e => e.move(e));
-    //dogs.forEach(dog => dog.sayName());
-    //dogs.map(function(thisDog) { thisDog.sayName(); })
+    //Just move moveable entities
+    const entitiesToMove = [...activeEntities].sort(() => Math.random() - 0.5);
+    entitiesToMove.forEach(e => e.move(priorToMovementSnap,reservedSpots));
+    redrawEntities();
+    
+}
+function redrawEntities()
+{
+    //clear 
+    for (let x = 0; x < sizeParameter; x++) {
+        for (let y = 0; y < sizeParameter; y++) {
+            cellMap[x][y].src = "";
+        }
+    }
+    //draw at cells positions by entites
+    activeEntities.forEach(entity => {
+        let img = cellMap[entity.posX][entity.posY]
+
+        if(img){
+            img.src = entity.imgSrc;
+        }
+    })
 }
 
-function updateGameScene(){
-    entityImage.src = cellMap[playerPos[0]][playerPos[1]].entity.imgSrc;
+async function updateGameScene(){
+    const thisValidEntity = activeEntities.find(e=>e.posX===playerPos[0] && e.posY === playerPos[1]);
+
+    entityImage.src = thisValidEntity ? thisValidEntity.imgSrc : "";
+    if (thisValidEntity) {
+        if (thisValidEntity.name === "Cat") {
+            let fact = await getCatFact();
+            alert(fact)
+        }
+
+    }
 }
 function goNorth() {
     if (playerPos[0] - 1 >= 0) {
@@ -226,7 +339,7 @@ function goWest() {
    
 }
 function goEast() {
-    if (playerPos[1] + 1 < gameArea[0].length) {
+    if (playerPos[1] + 1 < sizeParameter) {
         const oldPos = Array.from(playerPos);;
         playerPos[1] += 1;
         movePlayer(oldPos, playerPos);
@@ -252,28 +365,58 @@ function buildGameArray() {
     }
     console.log(gameArea)
 }
+function getRandomPosition() {
 
-function getRandomEntity(id) {
+    while (true) {
+        const x = Math.floor(Math.random() * sizeParameter);
+        const y = Math.floor(Math.random() * sizeParameter);
 
+        const occupied = activeEntities.find(e=>e.posX==x&&e.posY==y)
+        if(!occupied){
+            return [x,y];
+        }
+    }
+}
+
+function getRandomEntity(entityId) {
+
+    console.log("Id iteration nr: " + entityId);
     //Använd new entity med ctor
-    let newEntity = {}
     //Random based on available entities
     const index = Math.floor(Math.random() * entityTypes.length);
 
-    const randomX = Math.floor(Math.random() * gameArea[0].length);
-    const randomY = Math.floor(Math.random() * gameArea[1].length);
+    const entityTemplate = entityTypes[index];
+
+    //roll a die
+    //higher than spawn chance, spawn
+    const roll = Math.random();
+    if(roll>entityTemplate.spawnChance){
+
+    const randomCords = getRandomPosition();
 
     //Return from that index => can return cat
-    let entity =  entityTypes[index];
-    entity.id= id;
+    let entity =  new Entity
+    (
+        entityId,
+        entityTemplate.name,
+        entityTemplate.imgSrc,
+        entityTemplate.hp,
+        entityTemplate.attack,
+        randomCords[0],
+        randomCords[1]
+    )
 
-    console.log("Created enetity: " + entity.id + " " + entity.name)
 
-    console.log("Entity name: " + this.name + " X: " + randomX + " Y: " + randomY)
+    console.log("Created entity;")
+    console.log(entity)
+
     
-    entity.posX=randomX;
-    entity.posY=randomY;
-    return entity;
+    return entity;}
+
+    //rolled under threshold
+    else{
+        return null;
+    }
 }
 
 function getEntityImage(entity) {
@@ -287,4 +430,22 @@ function getEntityImage(entity) {
 
     return img;
 }
+//advice api haha: https://api.adviceslip.com/advice
 
+//frågesport api: https://opentdb.com/api_config.php
+async function getCatFact() {
+    const url = "https://catfact.ninja/fact?max_length=60";
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log(result);
+        return result.fact;
+
+    } catch (error) {
+        console.error(error.message);
+    }
+}
