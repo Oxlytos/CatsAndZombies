@@ -1,23 +1,29 @@
 //size and logic
 let gameArea = new Array();
 
+let cheatModeActivated = false;
+
 //the graphics
 const cellMap = [];
 const activeEntities = [];
 let mainGameWindow;
 
+let playerHealth=3;
 let maxEntities = 20;
 let catCount = 3;
 let zombieCount = 5;
 let travelerCount = 2;
 
 
+let turnCounter =0;
+let timeInterval;
+
 let entityImage;
 let entityName;
 let entityHp;
 let entityAttack;
 
-let cardinalDirections = ["North", "West", "South", "East"];
+let cardinalDirections = ["North", "West", "South", "East", "Stand Still"];
 
 const buttonMapPositions = [
     [0, 1],
@@ -27,7 +33,7 @@ const buttonMapPositions = [
 ];
 
 //specify size
-const sizeParameter = 5;
+const sizeParameter = 9;
 
 //first element is x axis
 //second is y axis
@@ -47,11 +53,16 @@ class Entity {
 
     move(priorToMovementSnap, reservedSpots){
         //Handle enteties we want to move, i e zombies or other
-        let valid = this.name.includes("Z");
-        if(valid){
-            moveToUnoccupiedSpot(this, priorToMovementSnap, reservedSpots);
-
+        let zomnbie = this.name.includes("Z");
+        if(zomnbie){
+            moveTowardsPlayer(this,priorToMovementSnap, reservedSpots);
         }
+        let traveler = this.name.includes("r")
+        if(traveler){
+            console.log("Travler moves")
+            moveToUnoccupiedSpot(this, priorToMovementSnap, reservedSpots);
+        }
+
     }
 
 }
@@ -62,6 +73,8 @@ class Quiz{
         this.wrongAnswers = wrongAnswers;
     }
 }
+
+const monthyPythonGif = "/Resources/Imgs/The_Bridge_of_Death_Monty_Python_and_the_Holy_Grail.gif"
 
 const entityTypes = [
    
@@ -89,16 +102,55 @@ const entityTypes = [
     
 ];
 
+function cheat(){
+
+    console.log("Changing cheat mode")
+    cheatModeActivated = cheatModeActivated === 1 ? 0 : 1;
+    redrawEntities();
+}
+function startTimer(){
+
+    const gameStart = Date.now();
+    timeInterval =setInterval(() => {
+
+        let timer = document.getElementById("timer");
+        if(!timer){
+            clearInterval(timeInterval);
+            return;
+        }
+        const timeElapsed = Date.now() - gameStart;
+
+        const seconds = Math.floor(timeElapsed / 1000) % 60;
+        const minutes = Math.floor(timeElapsed / 60000) % 60;
+        const hours = Math.floor(timeElapsed / 3600000);
+
+         document.getElementById("timer").textContent =
+            `${hours.toString().padStart(2, "0")}:` +
+            `${minutes.toString().padStart(2, "0")}:` +
+            `${seconds.toString().padStart(2, "0")}`;
+    }, 1000);
+
+}
 //Fill at start
 
 function fillGameArea() {
 
+    startTimer();
     //Game container 
     const gameDiv = document.getElementById("gameArea");
 
+    var cheatButton = document.createElement("input");
+    cheatButton.setAttribute("type", "button");
+    cheatButton.setAttribute("value", "Cheat");
+    cheatButton.onclick = cheat;
+    cheatButton.classList.add("gameButton");
+
+   
     //Clear at start
     gameDiv.innerHTML = "";
 
+     gameDiv.prepend(cheatButton);
+     
     const imageHolder = document.createElement("div");
     imageHolder.style.display = "grid";
     imageHolder.style.placeItems = "center"; 
@@ -127,12 +179,12 @@ function fillGameArea() {
     gameTable.classList.add("gameTable");
 
      //console.log("Entities"  + activeEntities)
-    playerPos[0] = 2;
-    playerPos [1] = 2;
-
-    //Constructs array
-    buildGameArray()
-
+     //Inital player position
+     let randomX = getRandomPosition();
+     let randomY = getRandomPosition();
+     playerPos[0] = randomX[0];
+     playerPos[1] = randomY[1];
+   
     //render table
     for (let i = 0; i < sizeParameter; i++) {
 
@@ -160,11 +212,146 @@ function fillGameArea() {
 
     gameDiv.appendChild(gameTable);
 
+
+    let minimapName = document.createElement("p");
+    minimapName.textContent ="Karta";
+    gameTable.appendChild(minimapName);
+
     createEntities();
     redrawEntities();
-
-    
+    buildStatScreen();
     buildPlayerButton();
+    updateStats();
+
+}
+function buildStatScreen(){
+    
+      //Game container 
+    const gameDiv = document.getElementById("gameArea");
+
+    let statscreen = document.createElement("div");
+    statscreen.classList.add("statsScreen");
+
+    let statTitle = document.createElement("p");
+    statTitle.textContent = "Statistik för spel omgång"
+
+    let turnStat = document.createElement("p");
+    turnStat.id = "turn_stat"
+    turnStat.textContent = "Runda: " + turnCounter;
+
+    let catsActive = document.createElement("p");
+    catsActive.id="active_cats"
+    catsActive.textContent="Katter på kartan: " + catCount;
+
+    statscreen.appendChild(statTitle);
+    statscreen.appendChild(turnStat);
+    statscreen.appendChild(catsActive);
+
+    let timer = document.createElement("p");
+    timer.id = "timer";
+    statscreen.appendChild(timer);
+    
+    gameDiv.appendChild(statscreen);
+}
+
+function updateStats() {
+    let turnStat = document.getElementById("turn_stat")
+    if(!turnStat){
+        return;
+    }
+    turnStat.textContent = "Runda: " + turnCounter;
+
+
+    let catStats = document.getElementById("active_cats");
+    catStats.textContent = "Katter på kartan: " + catCount; ""
+}
+
+function moveTowardsPlayer(zombieEntity,priorToMovementSnap, reservedSpots) {
+    //Player X: 5 | Zombie X: 3
+    //Result 5 -3 => 2
+    //Player Y: 10 | Zombie Y : 2
+    //Result 10-2 => 8
+    //Bigger numner is prioritized
+    let dZombieX = playerPos[0] - zombieEntity.posX ;
+    let dZombieY = playerPos[1] - zombieEntity.posY ;
+
+    let newZombiePosX = zombieEntity.posX;
+    let newZombiePosY = zombieEntity.posY;
+    //Use math.abs to just get a tile number difference
+    //I.E ignore if its to the left or right, up or down at start
+    //Math.Abs returns absolute number from input value
+    //Math.abs(5) returns 5
+    //Math.abs(-3) returns 3
+    //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs 
+
+    const randomMovement = Math.floor(Math.random() * 5);
+    if(randomMovement<=1){
+        console.log("random movement")
+        if(randomMovement===0){
+
+            const left = Math.floor(Math.random() * 2)
+            if(left===1){
+                newZombiePosX--;
+            }
+            else{
+                newZombiePosX++;
+            }
+        }
+        else if(randomMovement===1){
+            const up = Math.floor(Math.random() * 2)
+            if(up===1){
+                newZombiePosY--;
+            }
+            else{
+                newZombiePosY++;
+            }
+        }
+    }
+    else{
+
+        //So here, if X distance is higher than Y distance
+        if (Math.abs(dZombieX) > Math.abs(dZombieY)) {
+
+            //If the difference is negative, move left
+            if (dZombieX < 0) {
+                newZombiePosX--;
+            }
+            //If the difference is in the positives, move right
+            else if (dZombieX > 0) {
+                newZombiePosX++;
+            }
+            //Neutral, at same axis pos more or less
+            else {
+            }
+        }
+        else {
+            //Zombie goes up in the table
+            if (dZombieY < 0) {
+                newZombiePosY--;
+            }
+            //If player is below
+            //Move down
+            else if (dZombieY > 0) {
+                newZombiePosY++;
+            }
+            else {
+                //Don't move here either
+            }
+        }
+}
+    //Make sure its within params of the table
+    newZombiePosX = Math.max(0, Math.min(sizeParameter - 1, newZombiePosX));
+    newZombiePosY = Math.max(0, Math.min(sizeParameter - 1, newZombiePosY));
+
+    //Check if spot is reserved, if it is, quit operation
+    if(reservedSpots[newZombiePosX][newZombiePosY]){
+        return;
+    }
+
+    //Spots reserved by this entity
+    reservedSpots[newZombiePosX][newZombiePosY] = true;
+    zombieEntity.posX = newZombiePosX;
+    zombieEntity.posY = newZombiePosY;
 
 }
 function moveToUnoccupiedSpot(movingEntity, priorToMovementSnap, reservedSpots)
@@ -183,6 +370,7 @@ function moveToUnoccupiedSpot(movingEntity, priorToMovementSnap, reservedSpots)
 
     for(const direction of directions){
 
+        //Save current to modify, or not modify later
         let newPosX = movingEntity.posX;
         let newPosY = movingEntity.posY;
 
@@ -202,6 +390,13 @@ function moveToUnoccupiedSpot(movingEntity, priorToMovementSnap, reservedSpots)
         if(direction=="East"){
             newPosX++;
         }
+        //Stand still
+        if (direction == "Stand Still") {
+            console.log("Standing still")
+            //We reserve our own space and stand still
+            reservedSpots[newPosX][newPosY] = true;
+            return;
+        }
 
         //Within bounds
         if (
@@ -216,6 +411,8 @@ function moveToUnoccupiedSpot(movingEntity, priorToMovementSnap, reservedSpots)
         const occupied = priorToMovementSnap.find(e => e.x === newPosX && e.y === newPosY);
 
         //Not occupied
+        //And no other entity has already planned to move there
+        //If not occupied, but there's something there, then we can't move
         if(!occupied && !reservedSpots[newPosX][newPosY]){
             movingEntity.posX=newPosX;
             movingEntity.posY=newPosY;
@@ -226,21 +423,26 @@ function moveToUnoccupiedSpot(movingEntity, priorToMovementSnap, reservedSpots)
         }
 
         //Stay still
+        //Re roll function to try and move again?
     }
     
 }
+//Just create entities by top properties/settings
 function createEntities() {
     let entityId = 0;
+
     for(let i = 0; i<catCount; i++){
         entityId++;
         let cat = getEntity("Cat", entityId);
         activeEntities.push(cat);
     }
+
     for(let z = 0; z<zombieCount; z++){
         entityId++;
         let zombie = getEntity("Zombie", entityId);
         activeEntities.push(zombie);
     }
+
     for(let t= 0; t<travelerCount; t++){
         entityId++;
         let traveler = getEntity("Traveler", entityId);
@@ -248,8 +450,10 @@ function createEntities() {
     }
    
 }
-function getEntity(entityName, entityId){
-const index = entityTypes.findIndex(e => e.name.toLowerCase() === entityName.toLowerCase());
+function getEntity(entityName, entityId) {
+
+
+    const index = entityTypes.findIndex(e => e.name.toLowerCase() === entityName.toLowerCase());
     const entityTemplate = entityTypes[index];
 
     const randomCords = getRandomPosition();
@@ -268,7 +472,7 @@ const index = entityTypes.findIndex(e => e.name.toLowerCase() === entityName.toL
     return entity;
 
 }
-
+//Handler as in "handle this function"
 function buildCoordinalDirectionButton(string, handler) {
     var buttonToReturn = document.createElement("input");
     buttonToReturn.setAttribute("type", "button");
@@ -277,6 +481,8 @@ function buildCoordinalDirectionButton(string, handler) {
     buttonToReturn.classList.add("gameButton");
     return buttonToReturn;
 }
+
+//Create a table, create button, append to positions
 function buildPlayerButton() {
     //https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_button_create
     const gameDiv = document.getElementById("gameArea");
@@ -312,6 +518,7 @@ function buildPlayerButton() {
 }
 
 //Start new turn from here
+//Move everthhing, clear old posiiton, highligh new pos
 function movePlayer(oldPos, newPos) {
     newTurn();
     cellMap[oldPos[0]][oldPos[1]].parentElement.classList.remove("active-player-in-cell");
@@ -320,12 +527,22 @@ function movePlayer(oldPos, newPos) {
     cellMap[newPos[0]][newPos[1]].parentElement.classList.add("active-player-in-cell");
 }
 
+//New turn allows to register when player is on a entity
+//Moves enemies
 function newTurn(){
+
+    turnCounter++;
+    updateStats();
+    //Store old positions
      const priorToMovementSnap = activeEntities.map(e => ({
         x: e.posX, //all entiteis cords
         y: e.posY,
     }));
 
+    //Create a mapping of the table
+    //All spaces are available to be occupied
+    //Unless another entity is already going to that spot
+    //Parking system with a reservation
     const reservedSpots = Array.from(
         {
             length: sizeParameter
@@ -339,8 +556,11 @@ function newTurn(){
     redrawEntities();
     
 }
+
+//Redraw entities, can limit to only drawing certain in the future
 function redrawEntities()
 {
+    
     //clear 
     for (let x = 0; x < sizeParameter; x++) {
         for (let y = 0; y < sizeParameter; y++) {
@@ -351,34 +571,57 @@ function redrawEntities()
     activeEntities.forEach(entity => {
         let img = cellMap[entity.posX][entity.posY]
 
-        if(img){
-            img.src = entity.imgSrc;
+        if (img) {
+            if (cheatModeActivated) {
+                console.log("Drawing..")
+                img.src = entity.imgSrc;
+            }
+            else if (!cheatModeActivated) {
+                //
+            }
+            //
         }
     })
 }
 
+//Updates logic
 async function updateGameScene(){
     let oldCatFact = document.getElementById("fact");
     if(oldCatFact){
         oldCatFact.remove();
     }
+
+    //Player has same coordinates as entity
     const thisValidEntity = activeEntities.find(e=>e.posX===playerPos[0] && e.posY === playerPos[1]);
 
     entityImage.src = thisValidEntity ? thisValidEntity.imgSrc : "";
     if (thisValidEntity) {
 
         const index = activeEntities.indexOf(thisValidEntity);
+
+        //Other method here later, check if class is Cat or something
         if (thisValidEntity.name === "Cat") {
             let fact = await getCatFact();
             let factoidP = document.createElement("p");
             factoidP.id = "fact";
             factoidP.innerHTML = fact;
+            document.getElementById("button_map").remove();
 
             let gameDiv = document.getElementById("gameArea");
-            gameDiv.prepend(factoidP);
+            gameDiv.appendChild(factoidP);
 
             activeEntities.splice(index,1)
-            redrawEntities();
+            catCount--;
+            if(catCount===0){
+               setTimeout(winGame, 2000)
+               return;
+            }
+            else{
+                updateStats();
+                setTimeout(buildPlayerButton, 2000)
+                redrawEntities();
+            }
+            
         }
         if(thisValidEntity.name==="Traveler"){
 
@@ -398,11 +641,17 @@ function shuffle(inputArray){
         inputArray[j] = k;
     }
 }
+function winGame(){
+    let gameDiv = document.getElementById("gameArea");
+     alert("Du vinner!")
+    gameDiv.innerHTML = "";
+   
+}
+//Build quiz button for traveler
 function buildQuizButtons(quiz){
 
-
+    //Button mapping in a 3x3 grid
     const gameDiv = document.getElementById("gameArea");
-
     const buttonMap = document.createElement("table");
     for (let i = 0; i < 3; i++) {
         const tr = document.createElement("tr");
@@ -413,24 +662,26 @@ function buildQuizButtons(quiz){
         buttonMap.appendChild(tr);
     }
 
+    //Build question element
     const question = document.createElement("p");
     question.id = "question"
     question.innerHTML = quiz.question;
     gameDiv.appendChild(question);
 
-
+    //Put buttonmapping under question
     buttonMap.id = "button_map";
     gameDiv.appendChild(buttonMap);
-
   
-    //buttons
+    //Build button contnent
     const answerButtons = [
         buildQuizButton(quiz.correctAnswer, true),
         ...quiz.wrongAnswers.map(ans => buildQuizButton(ans, false))
     ];
 
+    //Shuffle by Fisher Yates formula
     shuffle(answerButtons);
 
+    //Map to cell, with randomized array
     answerButtons.map((button, i) => {
         const[row,col] = buttonMapPositions[i];
         buttonMap.rows[row].cells[col].appendChild(button);
@@ -439,6 +690,7 @@ function buildQuizButtons(quiz){
 
 
 }
+//From API call, throw in the answer (string) and if its correct or not
 function buildQuizButton(answer, isCorrect){
     var buttonToReturn = document.createElement("input");
     buttonToReturn.setAttribute("type", "button");
@@ -449,8 +701,11 @@ function buildQuizButton(answer, isCorrect){
     return buttonToReturn;
 }
 
+
+//From button, check if input has isCorrect
 function answerQuestion(event){
 
+    const gameDiv = document.getElementById("gameArea");
     const button = event.target;
 
     if (button.dataset.isCorrect === "true") {
@@ -461,11 +716,15 @@ function answerQuestion(event){
         clearTraveler();
 
     } else {
+        
         console.log("Wrong!");
-          window.location.href = "https://github.com/Oxlytos/CatsAndZombies";
+        entityImage.src = monthyPythonGif;
+        setInterval(leaveGame, 4000)
         //Game over
     }
 }
+
+//Remove after quiz
 function clearTraveler(){
 
     console.log("Clearing traveler")
@@ -480,6 +739,7 @@ function clearTraveler(){
     redrawEntities();
 
 }
+//Refactor into a "playerGo", then theck textcontent or something
 function goNorth() {
     if (playerPos[0] - 1 >= 0) {
         const oldPos = Array.from(playerPos);;
@@ -512,24 +772,8 @@ function goEast() {
 
 }
 
-function buildGameArray() {
-    //X axis, rows
-    for (var i = 0; i < sizeParameter; i++) {
 
-        //Create a row element
-        var row = [];
-        //Y axis, columns
-        for (var y = 0; y < sizeParameter; y++) {
-
-            //5 rows of whatever element, be it an X or img elements
-            row.push("X")
-        }
-        //Then push the row
-        //Filled with element
-        gameArea.push(row);
-    }
-    console.log(gameArea)
-}
+//Give a random position, if its not occupied
 function getRandomPosition() {
 
     while (true) {
@@ -543,6 +787,8 @@ function getRandomPosition() {
     }
 }
 
+
+//Not in use
 function getRandomEntity(entityId) {
 
     console.log("Id iteration nr: " + entityId);

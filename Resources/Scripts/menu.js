@@ -11,3 +11,6 @@ function startGame(){
     cat.src = "Resources/Imgs/car.png"
     gameLocation.appendChild(cat)
 }
+function buildMenu(){
+    
+}
