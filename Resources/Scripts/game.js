@@ -6,7 +6,10 @@ const cellMap = [];
 const activeEntities = [];
 let mainGameWindow;
 
-let spawnThisManyEntities = 20;
+let maxEntities = 20;
+let catCount = 3;
+let zombieCount = 5;
+let travelerCount = 2;
 
 
 let entityImage;
@@ -15,6 +18,13 @@ let entityHp;
 let entityAttack;
 
 let cardinalDirections = ["North", "West", "South", "East"];
+
+const buttonMapPositions = [
+    [0, 1],
+    [1, 0],
+    [1, 2],
+    [2, 1]
+];
 
 //specify size
 const sizeParameter = 5;
@@ -37,7 +47,7 @@ class Entity {
 
     move(priorToMovementSnap, reservedSpots){
         //Handle enteties we want to move, i e zombies or other
-        let valid = this.name.includes("O");
+        let valid = this.name.includes("Z");
         if(valid){
             moveToUnoccupiedSpot(this, priorToMovementSnap, reservedSpots);
 
@@ -45,14 +55,22 @@ class Entity {
     }
 
 }
+class Quiz{
+    constructor(question, correctAnswer, wrongAnswers){
+        this.question = question;
+        this.correctAnswer = correctAnswer;
+        this.wrongAnswers = wrongAnswers;
+    }
+}
 
 const entityTypes = [
+   
     {
-        name: "Oscar",
+        name: "Zombie",
         imgSrc: "/Resources/Imgs/zombie.png",
         hp: 5,
         attack: 1,
-        spawnChance:0.2
+        spawnChance:0.7
     },
     {
         name: "Cat",
@@ -108,6 +126,10 @@ function fillGameArea() {
     gameTable.style.borderCollapse = "collapse";
     gameTable.classList.add("gameTable");
 
+     //console.log("Entities"  + activeEntities)
+    playerPos[0] = 2;
+    playerPos [1] = 2;
+
     //Constructs array
     buildGameArray()
 
@@ -135,13 +157,13 @@ function fillGameArea() {
         }
         gameTable.append(tr);
     }
-    createEntities();
-    redrawEntities();
+
     gameDiv.appendChild(gameTable);
 
-    //console.log("Entities"  + activeEntities)
-    playerPos[0] = 2;
-    playerPos [1] = 2;
+    createEntities();
+    redrawEntities();
+
+    
     buildPlayerButton();
 
 }
@@ -164,15 +186,19 @@ function moveToUnoccupiedSpot(movingEntity, priorToMovementSnap, reservedSpots)
         let newPosX = movingEntity.posX;
         let newPosY = movingEntity.posY;
 
+        //Up in the table
         if(direction=="North"){
             newPosY--;
         }
+        //Down
         if(direction=="South"){
             newPosY++;
         }
+        //Left
         if(direction=="West"){
             newPosX--;
         }
+        //Right
         if(direction=="East"){
             newPosX++;
         }
@@ -205,15 +231,42 @@ function moveToUnoccupiedSpot(movingEntity, priorToMovementSnap, reservedSpots)
 }
 function createEntities() {
     let entityId = 0;
-    for (let i = 0; i < spawnThisManyEntities; i++) {
-
+    for(let i = 0; i<catCount; i++){
         entityId++;
-        let entity = getRandomEntity(entityId);
-        //roll to create, if its to low, don't create
-        if (entity != null) {
-            activeEntities.push(entity);
-        }
+        let cat = getEntity("Cat", entityId);
+        activeEntities.push(cat);
     }
+    for(let z = 0; z<zombieCount; z++){
+        entityId++;
+        let zombie = getEntity("Zombie", entityId);
+        activeEntities.push(zombie);
+    }
+    for(let t= 0; t<travelerCount; t++){
+        entityId++;
+        let traveler = getEntity("Traveler", entityId);
+        activeEntities.push(traveler);
+    }
+   
+}
+function getEntity(entityName, entityId){
+const index = entityTypes.findIndex(e => e.name.toLowerCase() === entityName.toLowerCase());
+    const entityTemplate = entityTypes[index];
+
+    const randomCords = getRandomPosition();
+
+    //Return from that index => can return cat
+    let entity =  new Entity
+    (
+        entityId,
+        entityTemplate.name,
+        entityTemplate.imgSrc,
+        entityTemplate.hp,
+        entityTemplate.attack,
+        randomCords[0],
+        randomCords[1]
+    )
+    return entity;
+
 }
 
 function buildCoordinalDirectionButton(string, handler) {
@@ -237,6 +290,7 @@ function buildPlayerButton() {
         }
         buttonMap.appendChild(tr);
     }
+    buttonMap.id ="button_map";
     gameDiv.appendChild(buttonMap);
 
 
@@ -304,16 +358,127 @@ function redrawEntities()
 }
 
 async function updateGameScene(){
+    let oldCatFact = document.getElementById("fact");
+    if(oldCatFact){
+        oldCatFact.remove();
+    }
     const thisValidEntity = activeEntities.find(e=>e.posX===playerPos[0] && e.posY === playerPos[1]);
 
     entityImage.src = thisValidEntity ? thisValidEntity.imgSrc : "";
     if (thisValidEntity) {
+
+        const index = activeEntities.indexOf(thisValidEntity);
         if (thisValidEntity.name === "Cat") {
             let fact = await getCatFact();
-            alert(fact)
+            let factoidP = document.createElement("p");
+            factoidP.id = "fact";
+            factoidP.innerHTML = fact;
+
+            let gameDiv = document.getElementById("gameArea");
+            gameDiv.prepend(factoidP);
+
+            activeEntities.splice(index,1)
+            redrawEntities();
+        }
+        if(thisValidEntity.name==="Traveler"){
+
+            var quiz = await getTravelerQuiz();
+            document.getElementById("button_map").remove();
+            buildQuizButtons(quiz);
         }
 
     }
+}
+function shuffle(inputArray){
+     for (let i = inputArray.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        let k = inputArray[i];
+
+        inputArray[i] = inputArray[j];
+        inputArray[j] = k;
+    }
+}
+function buildQuizButtons(quiz){
+
+
+    const gameDiv = document.getElementById("gameArea");
+
+    const buttonMap = document.createElement("table");
+    for (let i = 0; i < 3; i++) {
+        const tr = document.createElement("tr");
+        for (let y = 0; y < 3; y++) {
+            const td = document.createElement("td");
+            tr.appendChild(td);
+        }
+        buttonMap.appendChild(tr);
+    }
+
+    const question = document.createElement("p");
+    question.id = "question"
+    question.innerHTML = quiz.question;
+    gameDiv.appendChild(question);
+
+
+    buttonMap.id = "button_map";
+    gameDiv.appendChild(buttonMap);
+
+  
+    //buttons
+    const answerButtons = [
+        buildQuizButton(quiz.correctAnswer, true),
+        ...quiz.wrongAnswers.map(ans => buildQuizButton(ans, false))
+    ];
+
+    shuffle(answerButtons);
+
+    answerButtons.map((button, i) => {
+        const[row,col] = buttonMapPositions[i];
+        buttonMap.rows[row].cells[col].appendChild(button);
+    })
+
+
+
+}
+function buildQuizButton(answer, isCorrect){
+    var buttonToReturn = document.createElement("input");
+    buttonToReturn.setAttribute("type", "button");
+    buttonToReturn.setAttribute("value", answer);
+    buttonToReturn.dataset.isCorrect = isCorrect;
+    buttonToReturn.onclick = answerQuestion;
+    buttonToReturn.classList.add("gameButton");
+    return buttonToReturn;
+}
+
+function answerQuestion(event){
+
+    const button = event.target;
+
+    if (button.dataset.isCorrect === "true") {
+        console.log("Correct!");
+        document.getElementById("question").remove();
+        document.getElementById("button_map").remove();
+        buildPlayerButton();
+        clearTraveler();
+
+    } else {
+        console.log("Wrong!");
+          window.location.href = "https://github.com/Oxlytos/CatsAndZombies";
+        //Game over
+    }
+}
+function clearTraveler(){
+
+    console.log("Clearing traveler")
+    const thisValidEntity = activeEntities.findIndex(e=>e.posX===playerPos[0] && e.posY === playerPos[1]);
+
+    if (thisValidEntity !== -1) {
+        console.log("Removing...")
+        activeEntities.splice(thisValidEntity, 1);
+
+    }
+
+    redrawEntities();
+
 }
 function goNorth() {
     if (playerPos[0] - 1 >= 0) {
@@ -444,6 +609,31 @@ async function getCatFact() {
         const result = await response.json();
         console.log(result);
         return result.fact;
+
+    } catch (error) {
+        console.error(error.message);
+    }
+}
+async function getTravelerQuiz(params) {
+    const url = "https://opentdb.com/api.php?amount=1&type=multiple";
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`);
+        }
+        const result = await response.json();
+
+        let question = result.results[0].question;
+        let wrongAnswers = result.results[0].incorrect_answers;
+        let correctAnswer = result.results[0].correct_answer;
+        console.log(correctAnswer)
+
+        let quiz = new Quiz(
+            question, 
+            correctAnswer, 
+            wrongAnswers
+        );
+        return quiz;
 
     } catch (error) {
         console.error(error.message);
