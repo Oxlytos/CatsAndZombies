@@ -209,6 +209,10 @@ transform: scale(1.1);
        height: 16px;
    }
 
+   .gameScreen{
+        max-height: 200px;
+
+   }
     .entityImage {
         height: 30%;
     }

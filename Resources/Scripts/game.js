@@ -312,6 +312,7 @@ function fillGameArea() {
     updateStats();
 
     cellMap[playerPos[0]][playerPos[1]].parentElement.classList.add("active-player-in-cell");
+    drawNearbyEntitiesIcons();
 
 
 }
@@ -614,7 +615,7 @@ function buildPlayerButton() {
     buttonMap.rows[1].cells[2].appendChild(eBut); // middle right
     buttonMap.rows[2].cells[1].appendChild(sBut); // bottom middle
 
-    
+
 }
 
 //Start new turn from here
@@ -762,7 +763,10 @@ async function updateGameScene() {
             factoidP.id = "fact";
             factoidP.innerHTML = fact;
             factoidP.innerHTML += String.fromCharCode(13);
-            factoidP.innerHTML += "Katten läckte dina sår!"
+
+            //Can't spell for 5 cents
+            //https://verb.woxikon.se/sv/l%C3%A4ka
+            factoidP.innerHTML += "; Katten läkte dina sår!"
 
             playerHealth = maxPlayerHealth;
             updatePlayerHealth();
@@ -839,7 +843,7 @@ function loseGame() {
 }
 function updateEnemyHealth() {
     const enemyHealth = document.getElementById("enemy_health")
-    enemyHealth.innerHTML = currentEntity.hp;
+    enemyHealth.innerHTML = "Fiendes hälsa: " + currentEntity.hp;
 }
 function updatePlayerHealth() {
     if(playerHealth===0){
@@ -870,7 +874,7 @@ async function getBattleButtons(enemy) {
     //Build question element
     const enemyHealth = document.createElement("p");
     enemyHealth.id = "enemy_health"
-    enemyHealth.innerHTML = enemy.hp;
+    enemyHealth.innerHTML = "Fiendes hälsa: " + enemy.hp;
 
     const battleLog = document.createElement("p");
     battleLog.id = "battle_log"
@@ -918,6 +922,7 @@ function endBattleEncoubter() {
     clearEntity();
     redrawEntities();
     buildPlayerButton();
+    nearbyEnteties();
     return;
 }
 
@@ -966,6 +971,8 @@ function buildQuizButtons(quiz) {
     //Build button contnent
     const answerButtons = [
         buildQuizButton(quiz.correctAnswer, true),
+        //... spreads array out
+        //Each item in array gets mapped as individual items
         ...quiz.wrongAnswers.map(ans => buildQuizButton(ans, false))
     ];
 
@@ -1011,7 +1018,7 @@ function answerQuestion(event) {
         console.log("Wrong!");
         entityImage.src = monthyPythonGif;
         entityImage.src = monthyPythonGif + `?reload=${performance.now()}`;
-        setInterval(loseGame, 4000)
+        setTimeout(loseGame, 4000)
         //Game over
     }
 }
@@ -1027,6 +1034,8 @@ function clearEntity() {
 
     }
     redrawEntities();
+    drawNearbyEntitiesIcons();
+
 
 }
 
@@ -1072,7 +1081,9 @@ function getRandomPosition() {
         const y = Math.floor(Math.random() * sizeParameter);
 
         const occupied = activeEntities.find(e => e.posX == x && e.posY == y)
-        if (!occupied) {
+
+        const playerCheck = playerPos[0]===x && playerPos[1]===y;
+        if (!occupied && !playerCheck) {
             return [x, y];
         }
     }

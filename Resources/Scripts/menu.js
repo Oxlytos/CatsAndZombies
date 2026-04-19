@@ -9,6 +9,9 @@ function startGame(){
 
 
 function buildMenu(){
+    let existing = document.getElementById("mainMenu");
+    if (existing) existing.remove();
+
     let centeredDiv = document.getElementById("main_centered_div");
     let mainMenu = document.createElement("div");
     mainMenu.id = "mainMenu";
@@ -57,15 +60,12 @@ function buildMainMenuButton(buttonValue, handler){
 }
 function aboutGame(){
 
-    let gameLocation = document.getElementById("gameArea")
-    let infoCheck = document.getElementById("info")
-    if(infoCheck){
-        infoCheck.remove();
-    }
+     let gameLocation = document.getElementById("gameArea");
+
+    gameLocation.innerHTML = ""; 
 
     let info = document.createElement("p");
-    
-    info.id="info"
+    info.id = "info";
 
 
     info.innerHTML = `
