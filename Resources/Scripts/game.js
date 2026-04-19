@@ -9,6 +9,7 @@ const cellMap = [];
 const activeEntities = [];
 let mainGameWindow;
 
+//Adjust as needed
 let maxPlayerHealth = 3;
 let playerHealth;
 let maxEntities = 20;
