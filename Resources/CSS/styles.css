@@ -11,6 +11,9 @@ body {
     width: 70%;
     margin: auto;
 }
+.ul_spaced li{
+    margin-top: 50px;
+}
 
 .center-flex {
     display: flex;
@@ -57,6 +60,8 @@ li {
     filter: blur(20px);
 }
 .entityImage{
+    max-height: 400px;
+    max-width: 400px;
         border-radius: 20px;
     transition: 0.2s;
 }
@@ -77,38 +82,32 @@ transform: scale(1.1);
 }
 
 .gameTable{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    border-collapse: collapse;
+    border-spacing: 0;
 
     position: absolute;
     left: 10%;
     top: 20%;
     width: fit-content;
 }
+
+.gameTable_td{
+    width: 32px;
+    height: 32px;
+    border: none;
+    outline: none;
+    padding: 0;
+}
+.gameTable_td img{
+    display: block;
+      width: 100%;
+    height: 100%;
+}
 .gameTable p{
     margin: 0;
     position: relative;
     text-align: center;
-    background-color: none;
-}
-.gameTable_td{
-    width: 32px;
-    height: 32px;
-      border-style: none;
-    padding: 15;
-    margin: 0;
-    overflow: hidden;
-}
-.gameTable_td img{
-     width: 100%;
-     height: 100%;
-    border: none;
-    border-style: none;
-}
-.gameTable_td:hover{
-    transform: scale(1.5);
+    background-color: transparent;
 }
 .gameButton{
       font-family: 'Open-Dyslexic', sans-serif;
@@ -116,9 +115,31 @@ transform: scale(1.1);
     color: white;
     background-color: black;
 }
+.settingButton{
+     font-family: 'Open-Dyslexic', sans-serif;
+      font-size: 20px;
+    color: white;
+    background-color: rgb(116, 116, 116);
+}
 .active-player-in-cell{
     background-color: rgb(11, 146, 16);
     border: 25px;
+}
+.entity-nearby-in-cell{
+    background-color: rgb(255, 238, 0);
+    border: 25px;
+}
+.entity-nearby-traveler{
+    background-color: rgb(255, 136, 0);
+    border: 25px;
+}
+.entity-nearby-zombie{
+    background-color: rgb(255, 0, 0);
+    border: 25px;
+}
+.entity-nearby-cat{
+    background-color: aquamarine;
+     border: 25px;
 }
 
 .center {
@@ -132,3 +153,55 @@ transform: scale(1.1);
     padding: 0;
     text-align: center;
 }
+.button_map{
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 300px; 
+}
+.button_map td {
+    aspect-ratio: 1 / 1; 
+    width: 33%;
+    padding: 0;
+}
+
+@media (max-width: 768px) {
+
+    .center{
+        width: 100%;        
+        margin: 0 auto;    
+        padding: 10px;      
+    }
+    .gameTable {
+        position: static;
+        margin: 0 auto;
+    }
+   .gameTable_td {
+       width: 16px;
+       height: 16px;
+   }
+
+    .entityImage {
+        height: 30%;
+    }
+
+    .button_map {
+        border-collapse: collapse;
+        table-layout: fixed;
+        max-width: 200px;
+    }
+    .gameButton{
+        font-size: 16px;
+    }
+      .statsScreen {
+        position: static;   
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+}
+
+    
+
+
+}
+    

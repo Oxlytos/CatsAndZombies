@@ -2,35 +2,60 @@
 let gameArea = new Array();
 
 let cheatModeActivated = false;
+let oscarMode = false;
 
 //the graphics
 const cellMap = [];
 const activeEntities = [];
 let mainGameWindow;
 
-let playerHealth=3;
+let maxPlayerHealth = 3;
+let playerHealth;
 let maxEntities = 20;
-let catCount = 3;
-let zombieCount = 5;
-let travelerCount = 2;
 
 
-let turnCounter =0;
+let initalCatCount = 5;
+let catCount = initalCatCount;
+
+let initalZombieCount = 4;
+let zombieCount = initalZombieCount;
+
+let initalTravelerCount = 4;
+let travelerCount = initalTravelerCount;
+
+
+let turnCounter = 0;
 let timeInterval;
+
+let currentEntity;
+let battleLogEntity;
 
 let entityImage;
 let entityName;
 let entityHp;
 let entityAttack;
 
+//Roll between these
 let cardinalDirections = ["North", "West", "South", "East", "Stand Still"];
 
+//For 1 3x3 area
 const buttonMapPositions = [
     [0, 1],
     [1, 0],
     [1, 2],
     [2, 1]
 ];
+
+const catUrls =
+[
+    "/Resources/Imgs/Cat_imgs/637504925_1335737565027348_2711308338909549589_n.jpg",
+    "Resources/Imgs/Cat_imgs/660767968_917762301081010_9115556837267146554_n.jpg",
+    "Resources/Imgs/Cat_imgs/664289471_1269822081362012_8331023428841532884_n.jpg",
+    "Resources/Imgs/Cat_imgs/664314779_4295383360710403_6088586368347165983_n.jpg",
+    "Resources/Imgs/Cat_imgs/664407134_1566596684441549_5811764716995801580_n.jpg",
+    "Resources/Imgs/Cat_imgs/664736669_1256136733401406_7196935068568418556_n.jpg",
+    "Resources/Imgs/Cat_imgs/668725798_1924485681519500_3053834524083633537_n.jpg"
+]
 
 //specify size
 const sizeParameter = 9;
@@ -40,34 +65,39 @@ const sizeParameter = 9;
 let playerPos = [0, 0];
 
 class Entity {
-    constructor(id, name, imgSrc, hp, attack, posX, posY,spawnChance) {
+    constructor(id, name, imgSrc, hp, attack, posX, posY, spawnChance) {
         this.id = id
         this.name = name;
         this.imgSrc = imgSrc;
         this.hp = hp;
         this.attack = attack;
-        this.posX=posX;
-        this.posY=posY;
+        this.posX = posX;
+        this.posY = posY;
         this.spawnChance = spawnChance;
     }
 
-    move(priorToMovementSnap, reservedSpots){
+    move(priorToMovementSnap, reservedSpots) {
         //Handle enteties we want to move, i e zombies or other
         let zomnbie = this.name.includes("Z");
-        if(zomnbie){
-            moveTowardsPlayer(this,priorToMovementSnap, reservedSpots);
+        if (zomnbie) {
+            moveTowardsPlayer(this, priorToMovementSnap, reservedSpots);
         }
         let traveler = this.name.includes("r")
-        if(traveler){
-            console.log("Travler moves")
+        if (traveler) {
             moveToUnoccupiedSpot(this, priorToMovementSnap, reservedSpots);
+        }
+        let cat = this.name.includes("C")
+        if(cat){
+            //Static, stay on spot
+            console.log("meeeow")
+            reservedSpots[this.posX][this.posY] = true;
         }
 
     }
 
 }
-class Quiz{
-    constructor(question, correctAnswer, wrongAnswers){
+class Quiz {
+    constructor(question, correctAnswer, wrongAnswers) {
         this.question = question;
         this.correctAnswer = correctAnswer;
         this.wrongAnswers = wrongAnswers;
@@ -77,44 +107,51 @@ class Quiz{
 const monthyPythonGif = "/Resources/Imgs/The_Bridge_of_Death_Monty_Python_and_the_Holy_Grail.gif"
 
 const entityTypes = [
-   
+
     {
         name: "Zombie",
         imgSrc: "/Resources/Imgs/zombie.png",
-        hp: 5,
+        hp: 2,
         attack: 1,
-        spawnChance:0.7
+        spawnChance: 0.7
     },
     {
         name: "Cat",
         imgSrc: "/Resources/Imgs/car.png",
         hp: 99,
         attack: 99,
-        spawnChance:0.7
+        spawnChance: 0.7
     },
     {
         name: "Traveler",
         imgSrc: "/Resources/Imgs/notme.png",
-        hp: 99,
+        hp: 1,
         attack: 99,
-        spawnChance:0.7
+        spawnChance: 0.7
     },
-    
+
 ];
 
-function cheat(){
+//Cheat mode to test everything
+function cheat() {
 
     console.log("Changing cheat mode")
     cheatModeActivated = cheatModeActivated === 1 ? 0 : 1;
     redrawEntities();
 }
-function startTimer(){
+function oscarModeActivationStatus(){
+    oscarMode = oscarMode === 1 ? 0: 1;
+    redrawEntities();
+}
+
+//Timer starts after pressing "start"
+function startTimer() {
 
     const gameStart = Date.now();
-    timeInterval =setInterval(() => {
+    timeInterval = setInterval(() => {
 
         let timer = document.getElementById("timer");
-        if(!timer){
+        if (!timer) {
             clearInterval(timeInterval);
             return;
         }
@@ -124,7 +161,7 @@ function startTimer(){
         const minutes = Math.floor(timeElapsed / 60000) % 60;
         const hours = Math.floor(timeElapsed / 3600000);
 
-         document.getElementById("timer").textContent =
+        document.getElementById("timer").textContent =
             `${hours.toString().padStart(2, "0")}:` +
             `${minutes.toString().padStart(2, "0")}:` +
             `${seconds.toString().padStart(2, "0")}`;
@@ -135,7 +172,13 @@ function startTimer(){
 
 function fillGameArea() {
 
+    catCount=initalCatCount;
+    zombieCount=initalZombieCount;
+    travelerCount=initalTravelerCount;
+
+
     startTimer();
+    turnCounter = 0;
     //Game container 
     const gameDiv = document.getElementById("gameArea");
 
@@ -143,17 +186,30 @@ function fillGameArea() {
     cheatButton.setAttribute("type", "button");
     cheatButton.setAttribute("value", "Cheat");
     cheatButton.onclick = cheat;
-    cheatButton.classList.add("gameButton");
+    cheatButton.classList.add("settingButton");
 
-   
+    var oscarButton = document.createElement("input");
+    oscarButton.setAttribute("type", "button");
+    oscarButton.setAttribute("value", "Oscar Mode");
+    oscarButton.onclick = oscarModeActivationStatus;
+    oscarButton.classList.add("settingButton");
+
+    var playerHealthDisplay = document.createElement("p")
+    playerHealthDisplay.id = "player_health_display"
+    playerHealth = maxPlayerHealth;
+    playerHealthDisplay.innerHTML = "Hälsa: " + playerHealth;
     //Clear at start
     gameDiv.innerHTML = "";
 
-     gameDiv.prepend(cheatButton);
-     
+    gameDiv.prepend(cheatButton);
+    gameDiv.prepend(oscarButton);
+    gameDiv.prepend(playerHealthDisplay);
+
+
+
     const imageHolder = document.createElement("div");
     imageHolder.style.display = "grid";
-    imageHolder.style.placeItems = "center"; 
+    imageHolder.style.placeItems = "center";
 
     //Big background
     mainGameWindow = new Image();
@@ -178,28 +234,28 @@ function fillGameArea() {
     gameTable.style.borderCollapse = "collapse";
     gameTable.classList.add("gameTable");
 
-     //console.log("Entities"  + activeEntities)
-     //Inital player position
-     let randomX = getRandomPosition();
-     let randomY = getRandomPosition();
-     playerPos[0] = randomX[0];
-     playerPos[1] = randomY[1];
-   
+    //console.log("Entities"  + activeEntities)
+    //Inital player position
+    let randomX = getRandomPosition();
+    let randomY = getRandomPosition();
+    playerPos[0] = randomX[0];
+    playerPos[1] = randomY[1];
+
     //render table
     for (let i = 0; i < sizeParameter; i++) {
 
         cellMap[i] = [];
         //X
         const tr = document.createElement("tr");
-       
+
         for (let y = 0; y < sizeParameter; y++) {
             //each cell
             //basic styling
             const td = document.createElement("td");
             td.classList.add("gameTable_td")
 
-            const tdImg =  document.createElement("img");
-            tdImg.width=32;
+            const tdImg = document.createElement("img");
+            tdImg.width = 32;
             td.appendChild(tdImg);
 
             //this cell on x,y
@@ -210,12 +266,13 @@ function fillGameArea() {
         gameTable.append(tr);
     }
 
-    gameDiv.appendChild(gameTable);
 
 
     let minimapName = document.createElement("p");
-    minimapName.textContent ="Karta";
-    gameTable.appendChild(minimapName);
+    minimapName.textContent = "Karta";
+    gameDiv.appendChild(minimapName);
+        gameDiv.appendChild(gameTable);
+
 
     createEntities();
     redrawEntities();
@@ -224,9 +281,9 @@ function fillGameArea() {
     updateStats();
 
 }
-function buildStatScreen(){
-    
-      //Game container 
+function buildStatScreen() {
+
+    //Game container 
     const gameDiv = document.getElementById("gameArea");
 
     let statscreen = document.createElement("div");
@@ -237,11 +294,11 @@ function buildStatScreen(){
 
     let turnStat = document.createElement("p");
     turnStat.id = "turn_stat"
-    turnStat.textContent = "Runda: " + turnCounter;
+    turnStat.textContent = "Drag: " + turnCounter;
 
     let catsActive = document.createElement("p");
-    catsActive.id="active_cats"
-    catsActive.textContent="Katter på kartan: " + catCount;
+    catsActive.id = "active_cats"
+    catsActive.textContent = "Katter på kartan: " + catCount;
 
     statscreen.appendChild(statTitle);
     statscreen.appendChild(turnStat);
@@ -250,30 +307,30 @@ function buildStatScreen(){
     let timer = document.createElement("p");
     timer.id = "timer";
     statscreen.appendChild(timer);
-    
+
     gameDiv.appendChild(statscreen);
 }
 
 function updateStats() {
     let turnStat = document.getElementById("turn_stat")
-    if(!turnStat){
+    if (!turnStat) {
         return;
     }
-    turnStat.textContent = "Runda: " + turnCounter;
+    turnStat.textContent = "Drag: " + turnCounter;
 
 
     let catStats = document.getElementById("active_cats");
     catStats.textContent = "Katter på kartan: " + catCount; ""
 }
 
-function moveTowardsPlayer(zombieEntity,priorToMovementSnap, reservedSpots) {
+function moveTowardsPlayer(zombieEntity, priorToMovementSnap, reservedSpots) {
     //Player X: 5 | Zombie X: 3
     //Result 5 -3 => 2
     //Player Y: 10 | Zombie Y : 2
     //Result 10-2 => 8
     //Bigger numner is prioritized
-    let dZombieX = playerPos[0] - zombieEntity.posX ;
-    let dZombieY = playerPos[1] - zombieEntity.posY ;
+    let dZombieX = playerPos[0] - zombieEntity.posX;
+    let dZombieY = playerPos[1] - zombieEntity.posY;
 
     let newZombiePosX = zombieEntity.posX;
     let newZombiePosY = zombieEntity.posY;
@@ -285,29 +342,29 @@ function moveTowardsPlayer(zombieEntity,priorToMovementSnap, reservedSpots) {
     //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs 
 
     const randomMovement = Math.floor(Math.random() * 5);
-    if(randomMovement<=1){
+    if (randomMovement <= 1) {
         console.log("random movement")
-        if(randomMovement===0){
+        if (randomMovement === 0) {
 
             const left = Math.floor(Math.random() * 2)
-            if(left===1){
+            if (left === 1) {
                 newZombiePosX--;
             }
-            else{
+            else {
                 newZombiePosX++;
             }
         }
-        else if(randomMovement===1){
+        else if (randomMovement === 1) {
             const up = Math.floor(Math.random() * 2)
-            if(up===1){
+            if (up === 1) {
                 newZombiePosY--;
             }
-            else{
+            else {
                 newZombiePosY++;
             }
         }
     }
-    else{
+    else {
 
         //So here, if X distance is higher than Y distance
         if (Math.abs(dZombieX) > Math.abs(dZombieY)) {
@@ -338,13 +395,13 @@ function moveTowardsPlayer(zombieEntity,priorToMovementSnap, reservedSpots) {
                 //Don't move here either
             }
         }
-}
+    }
     //Make sure its within params of the table
     newZombiePosX = Math.max(0, Math.min(sizeParameter - 1, newZombiePosX));
     newZombiePosY = Math.max(0, Math.min(sizeParameter - 1, newZombiePosY));
 
     //Check if spot is reserved, if it is, quit operation
-    if(reservedSpots[newZombiePosX][newZombiePosY]){
+    if (reservedSpots[newZombiePosX][newZombiePosY]) {
         return;
     }
 
@@ -354,8 +411,7 @@ function moveTowardsPlayer(zombieEntity,priorToMovementSnap, reservedSpots) {
     zombieEntity.posY = newZombiePosY;
 
 }
-function moveToUnoccupiedSpot(movingEntity, priorToMovementSnap, reservedSpots)
-{
+function moveToUnoccupiedSpot(movingEntity, priorToMovementSnap, reservedSpots) {
     //Copy array
     const directions = [...cardinalDirections];
     //Fisher yates random function
@@ -368,26 +424,26 @@ function moveToUnoccupiedSpot(movingEntity, priorToMovementSnap, reservedSpots)
         directions[j] = k;
     }
 
-    for(const direction of directions){
+    for (const direction of directions) {
 
         //Save current to modify, or not modify later
         let newPosX = movingEntity.posX;
         let newPosY = movingEntity.posY;
 
         //Up in the table
-        if(direction=="North"){
+        if (direction == "North") {
             newPosY--;
         }
         //Down
-        if(direction=="South"){
+        if (direction == "South") {
             newPosY++;
         }
         //Left
-        if(direction=="West"){
+        if (direction == "West") {
             newPosX--;
         }
         //Right
-        if(direction=="East"){
+        if (direction == "East") {
             newPosX++;
         }
         //Stand still
@@ -413,9 +469,9 @@ function moveToUnoccupiedSpot(movingEntity, priorToMovementSnap, reservedSpots)
         //Not occupied
         //And no other entity has already planned to move there
         //If not occupied, but there's something there, then we can't move
-        if(!occupied && !reservedSpots[newPosX][newPosY]){
-            movingEntity.posX=newPosX;
-            movingEntity.posY=newPosY;
+        if (!occupied && !reservedSpots[newPosX][newPosY]) {
+            movingEntity.posX = newPosX;
+            movingEntity.posY = newPosY;
 
             //This spot is now occupied
             reservedSpots[newPosX][newPosY] = true;
@@ -425,30 +481,37 @@ function moveToUnoccupiedSpot(movingEntity, priorToMovementSnap, reservedSpots)
         //Stay still
         //Re roll function to try and move again?
     }
-    
+
+}
+function getRandomCatPic(){
+
+    shuffle(catUrls);
+     const index = Math.floor(Math.random() * catUrls.length);
+    return catUrls[index];
 }
 //Just create entities by top properties/settings
 function createEntities() {
     let entityId = 0;
 
-    for(let i = 0; i<catCount; i++){
+    for (let i = 0; i < catCount; i++) {
         entityId++;
         let cat = getEntity("Cat", entityId);
+        cat.imgSrc = getRandomCatPic();
         activeEntities.push(cat);
     }
 
-    for(let z = 0; z<zombieCount; z++){
+    for (let z = 0; z < zombieCount; z++) {
         entityId++;
         let zombie = getEntity("Zombie", entityId);
         activeEntities.push(zombie);
     }
 
-    for(let t= 0; t<travelerCount; t++){
+    for (let t = 0; t < travelerCount; t++) {
         entityId++;
         let traveler = getEntity("Traveler", entityId);
         activeEntities.push(traveler);
     }
-   
+
 }
 function getEntity(entityName, entityId) {
 
@@ -459,16 +522,16 @@ function getEntity(entityName, entityId) {
     const randomCords = getRandomPosition();
 
     //Return from that index => can return cat
-    let entity =  new Entity
-    (
-        entityId,
-        entityTemplate.name,
-        entityTemplate.imgSrc,
-        entityTemplate.hp,
-        entityTemplate.attack,
-        randomCords[0],
-        randomCords[1]
-    )
+    let entity = new Entity
+        (
+            entityId,
+            entityTemplate.name,
+            entityTemplate.imgSrc,
+            entityTemplate.hp,
+            entityTemplate.attack,
+            randomCords[0],
+            randomCords[1]
+        )
     return entity;
 
 }
@@ -496,7 +559,8 @@ function buildPlayerButton() {
         }
         buttonMap.appendChild(tr);
     }
-    buttonMap.id ="button_map";
+    buttonMap.id = "button_map";
+    buttonMap.classList.add("button_map");
     gameDiv.appendChild(buttonMap);
 
 
@@ -522,19 +586,21 @@ function buildPlayerButton() {
 function movePlayer(oldPos, newPos) {
     newTurn();
     cellMap[oldPos[0]][oldPos[1]].parentElement.classList.remove("active-player-in-cell");
-    
+
     updateGameScene();
     cellMap[newPos[0]][newPos[1]].parentElement.classList.add("active-player-in-cell");
+
+    drawNearbyEntitiesIcons();
 }
 
 //New turn allows to register when player is on a entity
 //Moves enemies
-function newTurn(){
+function newTurn() {
 
     turnCounter++;
     updateStats();
     //Store old positions
-     const priorToMovementSnap = activeEntities.map(e => ({
+    const priorToMovementSnap = activeEntities.map(e => ({
         x: e.posX, //all entiteis cords
         y: e.posY,
     }));
@@ -552,15 +618,14 @@ function newTurn(){
 
     //Just move moveable entities
     const entitiesToMove = [...activeEntities].sort(() => Math.random() - 0.5);
-    entitiesToMove.forEach(e => e.move(priorToMovementSnap,reservedSpots));
+    entitiesToMove.forEach(e => e.move(priorToMovementSnap, reservedSpots));
     redrawEntities();
-    
+
 }
 
 //Redraw entities, can limit to only drawing certain in the future
-function redrawEntities()
-{
-    
+function redrawEntities() {
+
     //clear 
     for (let x = 0; x < sizeParameter; x++) {
         for (let y = 0; y < sizeParameter; y++) {
@@ -572,6 +637,23 @@ function redrawEntities()
         let img = cellMap[entity.posX][entity.posY]
 
         if (img) {
+
+            if (!oscarMode) {
+                if (entity.name === "Traveler") {
+                    entity.imgSrc = "Resources/Imgs/Wandering_Trader.png";
+                }
+                if (entity.name === "Zombie") {
+                    entity.imgSrc = "Resources/Imgs/zombie2.png";
+                }
+            }
+            else {
+                if (entity.name === "Traveler") {
+                    entity.imgSrc = "Resources/Imgs/notme.png";
+                }
+                if (entity.name === "Zombie") {
+                    entity.imgSrc = "Resources/Imgs/zombie.png";
+                }
+            }
             if (cheatModeActivated) {
                 console.log("Drawing..")
                 img.src = entity.imgSrc;
@@ -583,16 +665,47 @@ function redrawEntities()
         }
     })
 }
+//Draw on the minimap that there are entities nearby
+async function drawNearbyEntitiesIcons() {
+
+    for (let x = 0; x < sizeParameter; x++) {
+        for (let y = 0; y < sizeParameter; y++) {
+            const thisCell = cellMap[x][y];
+
+            [...thisCell.classList].forEach(cssStyling => {
+                if (cssStyling.startsWith("entity-")) {
+                    thisCell.classList.remove(cssStyling);
+                }
+            })
+        }
+    }
+
+
+    const nearbyEnteties = activeEntities.filter(e =>
+        Math.abs(e.posX - playerPos[0]) <= 1 &&
+        Math.abs(e.posY - playerPos[1]) <= 1)
+
+    if (nearbyEnteties.length > 0) {
+        nearbyEnteties.forEach
+            (n => {
+                const thisCell = cellMap[n.posX][n.posY];
+                //Add colours based on type
+                thisCell.classList.add(`entity-nearby-${n.name.toLowerCase()}`);
+            })
+
+    }
+    //cellMap[oldPos[0]][oldPos[1]].parentElement.classList.remove("active-player-in-cell");
+}
 
 //Updates logic
-async function updateGameScene(){
+async function updateGameScene() {
     let oldCatFact = document.getElementById("fact");
-    if(oldCatFact){
+    if (oldCatFact) {
         oldCatFact.remove();
     }
 
     //Player has same coordinates as entity
-    const thisValidEntity = activeEntities.find(e=>e.posX===playerPos[0] && e.posY === playerPos[1]);
+    const thisValidEntity = activeEntities.find(e => e.posX === playerPos[0] && e.posY === playerPos[1]);
 
     entityImage.src = thisValidEntity ? thisValidEntity.imgSrc : "";
     if (thisValidEntity) {
@@ -601,39 +714,162 @@ async function updateGameScene(){
 
         //Other method here later, check if class is Cat or something
         if (thisValidEntity.name === "Cat") {
+             document.getElementById("button_map").remove();
             let fact = await getCatFact();
             let factoidP = document.createElement("p");
             factoidP.id = "fact";
             factoidP.innerHTML = fact;
-            document.getElementById("button_map").remove();
+            factoidP.innerHTML += String.fromCharCode(13);
+            factoidP.innerHTML += "Katten läckte dina sår!"
+
+            playerHealth = maxPlayerHealth;
+            updatePlayerHealth();
+
+           
 
             let gameDiv = document.getElementById("gameArea");
             gameDiv.appendChild(factoidP);
 
-            activeEntities.splice(index,1)
+            activeEntities.splice(index, 1)
             catCount--;
-            if(catCount===0){
-               setTimeout(winGame, 2000)
-               return;
+            if (catCount === 0) {
+                setTimeout(winGame, 2000)
+                return;
             }
-            else{
+            else {
+
                 updateStats();
                 setTimeout(buildPlayerButton, 2000)
                 redrawEntities();
             }
-            
-        }
-        if(thisValidEntity.name==="Traveler"){
 
-            var quiz = await getTravelerQuiz();
+        }
+        if (thisValidEntity.name === "Traveler") {
+
             document.getElementById("button_map").remove();
+            var quiz = await getTravelerQuiz();
             buildQuizButtons(quiz);
+        }
+        if (thisValidEntity.name === "Zombie") {
+            document.getElementById("button_map").remove();
+            getBattleButtons(thisValidEntity);
         }
 
     }
 }
-function shuffle(inputArray){
-     for (let i = inputArray.length - 1; i > 0; i--) {
+function buildBattleButton(flavourText, damage) {
+    var buttonToReturn = document.createElement("input");
+    buttonToReturn.setAttribute("type", "button");
+    buttonToReturn.setAttribute("value", flavourText);
+    buttonToReturn.dataset.damage = damage;
+    buttonToReturn.onclick = attackEnemy
+    buttonToReturn.classList.add("gameButton");
+    return buttonToReturn;
+}
+function attackEnemy(event) {
+
+    if (currentEntity) {
+        const button = event.target;
+        currentEntity.hp -= button.dataset.damage;
+        addToBattleLog("Spelare attackerar!")
+        updateEnemyHealth();
+        if (currentEntity.hp <= 0) {
+            addToBattleLog("Spelare vinner!");
+            setTimeout(endBattleEncoubter, 1000);
+        }
+        else if(playerHealth<=0){
+            entityImage.src = monthyPythonGif;
+        setInterval(leaveGame, 4000)
+        }
+        else {
+            setTimeout(battleTurn, 1000);
+
+        }
+    }
+}
+function updateEnemyHealth() {
+    const enemyHealth = document.getElementById("enemy_health")
+    enemyHealth.innerHTML = currentEntity.hp;
+}
+function updatePlayerHealth() {
+    var playerHealthDisplay = document.getElementById("player_health_display")
+    playerHealthDisplay.innerHTML = "Hälsa: " + playerHealth;
+}
+
+function addToBattleLog(input) {
+    battleLogEntity.innerHTML = input;
+}
+
+//Start battle
+async function getBattleButtons(enemy) {
+    //Button mapping in a 3x3 grid
+    const gameDiv = document.getElementById("gameArea");
+    const buttonMap = document.createElement("table");
+    for (let i = 0; i < 3; i++) {
+        const tr = document.createElement("tr");
+        for (let y = 0; y < 3; y++) {
+            const td = document.createElement("td");
+            tr.appendChild(td);
+        }
+        buttonMap.appendChild(tr);
+    }
+    buttonMap.classList.add("button_map");
+    //Build question element
+    const enemyHealth = document.createElement("p");
+    enemyHealth.id = "enemy_health"
+    enemyHealth.innerHTML = enemy.hp;
+
+    const battleLog = document.createElement("p");
+    battleLog.id = "battle_log"
+    battleLogEntity = battleLog;
+
+    gameDiv.appendChild(enemyHealth);
+    gameDiv.appendChild(battleLog);
+
+    buttonMap.id = "button_map";
+    gameDiv.appendChild(buttonMap);
+
+
+    const attackButton = buildBattleButton("Slå!", 1)
+    buttonMap.rows[2].cells[1].appendChild(attackButton);
+
+    battleEncounter(enemy);
+
+}
+function battleEncounter(enemy) {
+
+    console.log("Battle start!")
+    currentEntity = enemy;
+    entityAttack = enemy.attack;
+}
+function battleTurn() {
+    //Enemy gets to attack
+    if (currentEntity != null) {
+        addToBattleLog("Fiende attackerar!")
+        playerHealth -= entityAttack;
+        updatePlayerHealth();
+    }
+
+}
+
+function endBattleEncoubter() {
+
+    console.log("Ending battle encounter....")
+    currentEntity = null;
+    entityImage.src = "";
+    const battleLog = document.getElementById("battle_log")
+    battleLog.remove();
+    battleLogEntity = null;
+    document.getElementById("enemy_health").remove();
+    document.getElementById("button_map").remove();
+    clearEntity();
+    redrawEntities();
+    buildPlayerButton();
+    return;
+}
+
+function shuffle(inputArray) {
+    for (let i = inputArray.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
         let k = inputArray[i];
 
@@ -641,14 +877,15 @@ function shuffle(inputArray){
         inputArray[j] = k;
     }
 }
-function winGame(){
+function winGame() {
     let gameDiv = document.getElementById("gameArea");
-     alert("Du vinner!")
+    alert("Du vinner!")
     gameDiv.innerHTML = "";
-   
+    buildMenu()
+
 }
 //Build quiz button for traveler
-function buildQuizButtons(quiz){
+function buildQuizButtons(quiz) {
 
     //Button mapping in a 3x3 grid
     const gameDiv = document.getElementById("gameArea");
@@ -670,8 +907,9 @@ function buildQuizButtons(quiz){
 
     //Put buttonmapping under question
     buttonMap.id = "button_map";
+    buttonMap.classList.add("button_map");
     gameDiv.appendChild(buttonMap);
-  
+
     //Build button contnent
     const answerButtons = [
         buildQuizButton(quiz.correctAnswer, true),
@@ -683,7 +921,7 @@ function buildQuizButtons(quiz){
 
     //Map to cell, with randomized array
     answerButtons.map((button, i) => {
-        const[row,col] = buttonMapPositions[i];
+        const [row, col] = buttonMapPositions[i];
         buttonMap.rows[row].cells[col].appendChild(button);
     })
 
@@ -691,7 +929,7 @@ function buildQuizButtons(quiz){
 
 }
 //From API call, throw in the answer (string) and if its correct or not
-function buildQuizButton(answer, isCorrect){
+function buildQuizButton(answer, isCorrect) {
     var buttonToReturn = document.createElement("input");
     buttonToReturn.setAttribute("type", "button");
     buttonToReturn.setAttribute("value", answer);
@@ -703,7 +941,7 @@ function buildQuizButton(answer, isCorrect){
 
 
 //From button, check if input has isCorrect
-function answerQuestion(event){
+function answerQuestion(event) {
 
     const gameDiv = document.getElementById("gameArea");
     const button = event.target;
@@ -713,10 +951,10 @@ function answerQuestion(event){
         document.getElementById("question").remove();
         document.getElementById("button_map").remove();
         buildPlayerButton();
-        clearTraveler();
+        clearEntity();
 
     } else {
-        
+
         console.log("Wrong!");
         entityImage.src = monthyPythonGif;
         setInterval(leaveGame, 4000)
@@ -725,20 +963,19 @@ function answerQuestion(event){
 }
 
 //Remove after quiz
-function clearTraveler(){
+function clearEntity() {
 
-    console.log("Clearing traveler")
-    const thisValidEntity = activeEntities.findIndex(e=>e.posX===playerPos[0] && e.posY === playerPos[1]);
-
+    console.log("Clearing entity")
+    const thisValidEntity = activeEntities.findIndex(e => e.posX === playerPos[0] && e.posY === playerPos[1]);
     if (thisValidEntity !== -1) {
         console.log("Removing...")
         activeEntities.splice(thisValidEntity, 1);
 
     }
-
     redrawEntities();
 
 }
+
 //Refactor into a "playerGo", then theck textcontent or something
 function goNorth() {
     if (playerPos[0] - 1 >= 0) {
@@ -756,12 +993,12 @@ function goSouth() {
 
 }
 function goWest() {
-    if(playerPos[1] - 1 >= 0){
+    if (playerPos[1] - 1 >= 0) {
         const oldPos = Array.from(playerPos);;
         playerPos[1] -= 1;
         movePlayer(oldPos, playerPos);
     }
-   
+
 }
 function goEast() {
     if (playerPos[1] + 1 < sizeParameter) {
@@ -780,15 +1017,16 @@ function getRandomPosition() {
         const x = Math.floor(Math.random() * sizeParameter);
         const y = Math.floor(Math.random() * sizeParameter);
 
-        const occupied = activeEntities.find(e=>e.posX==x&&e.posY==y)
-        if(!occupied){
-            return [x,y];
+        const occupied = activeEntities.find(e => e.posX == x && e.posY == y)
+        if (!occupied) {
+            return [x, y];
         }
     }
 }
 
 
 //Not in use
+
 function getRandomEntity(entityId) {
 
     console.log("Id iteration nr: " + entityId);
@@ -801,47 +1039,36 @@ function getRandomEntity(entityId) {
     //roll a die
     //higher than spawn chance, spawn
     const roll = Math.random();
-    if(roll>entityTemplate.spawnChance){
+    if (roll > entityTemplate.spawnChance) {
 
-    const randomCords = getRandomPosition();
+        const randomCords = getRandomPosition();
 
-    //Return from that index => can return cat
-    let entity =  new Entity
-    (
-        entityId,
-        entityTemplate.name,
-        entityTemplate.imgSrc,
-        entityTemplate.hp,
-        entityTemplate.attack,
-        randomCords[0],
-        randomCords[1]
-    )
+        //Return from that index => can return cat
+        let entity = new Entity
+            (
+                entityId,
+                entityTemplate.name,
+                entityTemplate.imgSrc,
+                entityTemplate.hp,
+                entityTemplate.attack,
+                randomCords[0],
+                randomCords[1]
+            )
 
 
-    console.log("Created entity;")
-    console.log(entity)
+        console.log("Created entity;")
+        console.log(entity)
 
-    
-    return entity;}
+
+        return entity;
+    }
 
     //rolled under threshold
-    else{
+    else {
         return null;
     }
 }
 
-function getEntityImage(entity) {
-    //image element
-    const img = new Image();
-
-    img.classList.add("gridElement");
-
-    //available images based on entities
-    img.src = entity.imgSrc;
-
-    return img;
-}
-//advice api haha: https://api.adviceslip.com/advice
 
 //frågesport api: https://opentdb.com/api_config.php
 async function getCatFact() {
@@ -860,6 +1087,7 @@ async function getCatFact() {
         console.error(error.message);
     }
 }
+//Get traveler quiz
 async function getTravelerQuiz(params) {
     const url = "https://opentdb.com/api.php?amount=1&type=multiple";
     try {
@@ -872,11 +1100,14 @@ async function getTravelerQuiz(params) {
         let question = result.results[0].question;
         let wrongAnswers = result.results[0].incorrect_answers;
         let correctAnswer = result.results[0].correct_answer;
-        console.log(correctAnswer)
+        if (cheatModeActivated) {
+            console.log(correctAnswer)
+
+        }
 
         let quiz = new Quiz(
-            question, 
-            correctAnswer, 
+            question,
+            correctAnswer,
             wrongAnswers
         );
         return quiz;
