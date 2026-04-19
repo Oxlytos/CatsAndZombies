@@ -9,7 +9,7 @@ body::before {
     position: fixed;
     inset: 0;
 
-    background-image: url("/Resources/Imgs/bgMagic.png");
+    background-image: url("Resources/Imgs/bgMagic.png");
     background-size: cover;
     background-position: center;
 
