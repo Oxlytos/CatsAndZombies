@@ -209,16 +209,17 @@ transform: scale(1.1);
         margin: 0 auto;
     }
    .gameTable_td {
-       width: 16px;
-       height: 16px;
+       width: 10px;
+       height: 10px;
    }
 
+  
    .gameScreen{
         max-height: 200px;
 
    }
     .entityImage {
-        height: 30%;
+        height: 75%;
     }
 
     .button_map {

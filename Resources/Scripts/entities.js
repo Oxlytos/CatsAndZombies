@@ -322,6 +322,7 @@ function moveTowardsPlayer(zombieEntity, priorToMovementSnap, reservedSpots) {
     //Math.abs(-3) returns 3
     //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs 
 
+    //Increase the 5 for smarter AI
     const randomMovement = Math.floor(Math.random() * 5);
     if (randomMovement <= 1) {
         console.log("random movement")

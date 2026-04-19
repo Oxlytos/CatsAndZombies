@@ -107,6 +107,7 @@ function fillGameArea() {
     oscarButton.setAttribute("value", "Oscar Mode");
     oscarButton.onclick = oscarModeActivationStatus;
     oscarButton.classList.add("settingButton");
+    oscarButton.classList.add("hidden")
 
     var playerHealthDisplay = document.createElement("p")
     playerHealthDisplay.id = "player_health_display"
@@ -115,8 +116,8 @@ function fillGameArea() {
     //Clear at start
     gameDiv.innerHTML = "";
 
-    gameDiv.prepend(cheatButton);
     gameDiv.prepend(oscarButton);
+    gameDiv.prepend(cheatButton);
     gameDiv.prepend(playerHealthDisplay);
 
 
@@ -180,7 +181,8 @@ function fillGameArea() {
         }
         gameTable.append(tr);
     }
-
+    
+     clearMapIcons();
 
 
     let minimapName = document.createElement("p");
@@ -188,7 +190,6 @@ function fillGameArea() {
     gameDiv.appendChild(minimapName);
         gameDiv.appendChild(gameTable);
         
-    clearMapIcons();
     createEntities();
     redrawEntities();
     buildStatScreen();

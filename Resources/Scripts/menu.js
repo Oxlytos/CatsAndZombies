@@ -74,7 +74,7 @@ function aboutGame(){
   Frågesport: https://opentdb.com/ <br>
   Katt fakta: https://catfact.ninja/ <br>
   Gif:en är från; <br>Gilliam, T & Jones, T. (Regissörer). (1975). Monty Python and the Holy Grail [Film]. EMI Films. <br>
-  Fiender är antingen jag, eller från Minecraft; <br>
+  Fiender är från Minecraft; <br>
   Mojang Studios. (2011) Minecraft (26.1.2) [Datorspel] https://www.minecraft.net/sv-se <br>
   Katterna är Andreas, Erikas och Kalles.
 
