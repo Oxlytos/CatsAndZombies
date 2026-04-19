@@ -49,7 +49,7 @@ const buttonMapPositions = [
 
 const catUrls =
 [
-    "/Resources/Imgs/Cat_imgs/637504925_1335737565027348_2711308338909549589_n.jpg",
+    "Resources/Imgs/Cat_imgs/637504925_1335737565027348_2711308338909549589_n.jpg",
     "Resources/Imgs/Cat_imgs/660767968_917762301081010_9115556837267146554_n.jpg",
     "Resources/Imgs/Cat_imgs/664289471_1269822081362012_8331023428841532884_n.jpg",
     "Resources/Imgs/Cat_imgs/664314779_4295383360710403_6088586368347165983_n.jpg",
@@ -133,27 +133,27 @@ class Quiz {
     }
 }
 
-const monthyPythonGif = "/Resources/Imgs/The_Bridge_of_Death_Monty_Python_and_the_Holy_Grail.gif"
+const monthyPythonGif = "Resources/Imgs/The_Bridge_of_Death_Monty_Python_and_the_Holy_Grail.gif"
 
 const entityTypes = [
 
     {
         name: "Zombie",
-        imgSrc: "/Resources/Imgs/zombie.png",
+        imgSrc: "Resources/Imgs/zombie.png",
         hp: 2,
         attack: 1,
         spawnChance: 0.7
     },
     {
         name: "Cat",
-        imgSrc: "/Resources/Imgs/car.png",
+        imgSrc: "Resources/Imgs/car.png",
         hp: 99,
         attack: 99,
         spawnChance: 0.7
     },
     {
         name: "Traveler",
-        imgSrc: "/Resources/Imgs/notme.png",
+        imgSrc: "Resources/Imgs/notme.png",
         hp: 1,
         attack: 99,
         spawnChance: 0.7
