@@ -118,10 +118,13 @@ async function drawNearbyEntitiesIcons() {
         }
     }
 
+    //Zombie.x - player.x => 5-4 <=1(with math.abs)
+    //Zombies is adjacent to us in some direction
     const nearbyEnteties = activeEntities.filter(e =>
         Math.abs(e.posX - playerPos[0]) <= 1 &&
         Math.abs(e.posY - playerPos[1]) <= 1)
 
+        //Draw all nearby entities
     nearbyEnteties.forEach
         (n => {
             const cell = cellMap[n.posX][n.posY];
