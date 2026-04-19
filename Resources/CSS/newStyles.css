@@ -8,11 +8,10 @@ body::before {
     content: "";
     position: fixed;
     inset: 0;
-
-    background-image: url("Resources/Imgs/bgMagic.png");
+/* ../ to up one folder to locate bg image, yes this took longer than needed to sort out */
+    background-image: url("../Imgs/bgMagic.png");
     background-size: cover;
     background-position: center;
-
     filter: blur(20px);
     transform: scale(1.1); /* prevents blur edge clipping */
     z-index: -1;

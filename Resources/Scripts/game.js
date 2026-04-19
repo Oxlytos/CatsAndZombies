@@ -86,6 +86,9 @@ const bgUrls =[
     "Resources/Imgs/Bg_imgs/vLr7IfSE.jpg"
 ];
 
+const monthyPythonGif = "Resources/Imgs/The_Bridge_of_Death_Monty_Python_and_the_Holy_Grail.gif"
+
+
 //specify size
 const sizeParameter = 9;
 
@@ -133,7 +136,6 @@ class Quiz {
     }
 }
 
-const monthyPythonGif = "Resources/Imgs/The_Bridge_of_Death_Monty_Python_and_the_Holy_Grail.gif"
 
 const entityTypes = [
 
