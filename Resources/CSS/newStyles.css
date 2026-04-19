@@ -67,8 +67,8 @@ li {
 
 
 .entityImage{
-    max-height: 400px;
-    max-width: 400px;
+    max-height: 200px;
+    max-width: 200px;
         border-radius: 20px;
     transition: 0.2s;
 }
@@ -88,8 +88,8 @@ transform: scale(1.1);
     width: fit-content;
 }
 .gameScreen{
-    max-width: 800px;
-    max-height: 800px;
+    max-width: 600px;
+    max-height: 600px;
     width: auto;
     border-radius: 20px;
 }
@@ -98,21 +98,25 @@ transform: scale(1.1);
     border-spacing: 0;
 
     position: absolute;
-    left: 10%;
-    top: 20%;
+    left: 5%;
+    top: 5%;
     width: fit-content;
 }
-
+.hidden {
+    visibility: hidden;
+}
 .gameTable_td{
-    width: 32px;
-    height: 32px;
-    border: none;
-    outline: none;
+    width: 24px;
+    height: 24px;
+    border: 1px solid red;
+    outline: 1px;
     padding: 0;
 }
 .gameTable_td img{
     display: block;
       width: 100%;
+        border: 1px;
+    outline: 1px;
     height: 100%;
 }
 .gameTable p{
@@ -124,8 +128,8 @@ transform: scale(1.1);
 
 .gameButton {
     font-family: 'Open-Dyslexic', sans-serif;
-    max-width: 600px;
-    font-size: 40px;
+    max-width: 400px;
+    font-size: 20px;
 
     overflow-wrap: break-word;
     word-break: break-word;

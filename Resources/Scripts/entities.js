@@ -104,6 +104,34 @@ function battleTurn() {
     }
 
 }
+//Draw on the minimap that there are entities nearby
+async function drawNearbyEntitiesIcons() {
+
+    for (let x = 0; x < sizeParameter; x++) {
+        for (let y = 0; y < sizeParameter; y++) {
+            const cell = cellMap[x][y];
+             
+            cell.className = cell.className
+                .split(" ")
+                .filter(c => !c.startsWith("entity-nearby-"))
+                .join(" ");
+        }
+    }
+
+    const nearbyEnteties = activeEntities.filter(e =>
+        Math.abs(e.posX - playerPos[0]) <= 1 &&
+        Math.abs(e.posY - playerPos[1]) <= 1)
+
+    nearbyEnteties.forEach
+        (n => {
+            const cell = cellMap[n.posX][n.posY];
+
+            cell.classList.remove("hidden");
+            cell.classList.add(`entity-nearby-${n.name.toLowerCase()}`);
+
+    //cellMap[oldPos[0]][oldPos[1]].parentElement.classList.remove("active-player-in-cell");
+        });
+    }
 
 function endBattleEncoubter() {
 
@@ -118,13 +146,23 @@ function endBattleEncoubter() {
     clearEntity();
     redrawEntities();
     buildPlayerButton();
-    nearbyEnteties();
+    drawNearbyEntitiesIcons();
     return;
+}
+function clearMapIcons() {
+     for (let x = 0; x < sizeParameter; x++) {
+        for (let y = 0; y < sizeParameter; y++) {
+
+             const cell = cellMap[x][y];
+            cell.className = cell.className
+                .split(" ")
+                .filter(c => !c.startsWith("entity-nearby-"))
+                .join(" ");
+        }
+    }
 }
 
 function getEntity(entityName, entityId) {
-
-
     const index = entityTypes.findIndex(e => e.name.toLowerCase() === entityName.toLowerCase());
     const entityTemplate = entityTypes[index];
 

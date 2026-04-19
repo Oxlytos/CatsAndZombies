@@ -5,7 +5,7 @@ let cheatModeActivated = false;
 let oscarMode = false;
 
 //the graphics
-const cellMap = [];
+let cellMap = [];
 const activeEntities = [];
 let mainGameWindow;
 
@@ -82,6 +82,10 @@ function startTimer() {
 
 function fillGameArea() {
 
+    //Resets for each session
+     cellMap = [];
+   
+
     catCount=initalCatCount;
     zombieCount=initalZombieCount;
     travelerCount=initalTravelerCount;
@@ -124,6 +128,7 @@ function fillGameArea() {
     //Big background
     mainGameWindow = new Image();
     mainGameWindow.classList.add("gameScreen");
+    
     mainGameWindow.src = randomBackground();
     mainGameWindow.style.gridArea = "1 / 1";
     mainGameWindow.style.zIndex = "1";
@@ -182,8 +187,8 @@ function fillGameArea() {
     minimapName.textContent = "Karta";
     gameDiv.appendChild(minimapName);
         gameDiv.appendChild(gameTable);
-
-
+        
+    clearMapIcons();
     createEntities();
     redrawEntities();
     buildStatScreen();
@@ -307,7 +312,7 @@ function buildPlayerButton() {
     buttonMap.rows[1].cells[2].appendChild(eBut); // middle right
     buttonMap.rows[2].cells[1].appendChild(sBut); // bottom middle
 
-
+    drawNearbyEntitiesIcons();
 }
 
 //Start new turn from here
@@ -359,7 +364,7 @@ function redrawEntities() {
     //clear 
     for (let x = 0; x < sizeParameter; x++) {
         for (let y = 0; y < sizeParameter; y++) {
-            cellMap[x][y].src = "";
+           cellMap[x][y].classList.add("hidden");
         }
     }
     //draw at cells positions by entites
@@ -384,48 +389,21 @@ function redrawEntities() {
                     entity.imgSrc = "Resources/Imgs/zombie.png";
                 }
             }
+            //Draw all
             if (cheatModeActivated) {
-                console.log("Drawing..")
-                img.src = entity.imgSrc;
+                img.classList.remove("hidden");
+
+                img.classList.add(`entity-nearby-${entity.name.toLowerCase()}`);
             }
+            //Draw close
             else if (!cheatModeActivated) {
-                //
+               drawNearbyEntitiesIcons();
             }
             //
         }
     })
 }
-//Draw on the minimap that there are entities nearby
-async function drawNearbyEntitiesIcons() {
 
-    for (let x = 0; x < sizeParameter; x++) {
-        for (let y = 0; y < sizeParameter; y++) {
-            const thisCell = cellMap[x][y];
-
-            [...thisCell.classList].forEach(cssStyling => {
-                if (cssStyling.startsWith("entity-")) {
-                    thisCell.classList.remove(cssStyling);
-                }
-            })
-        }
-    }
-
-
-    const nearbyEnteties = activeEntities.filter(e =>
-        Math.abs(e.posX - playerPos[0]) <= 1 &&
-        Math.abs(e.posY - playerPos[1]) <= 1)
-
-    if (nearbyEnteties.length > 0) {
-        nearbyEnteties.forEach
-            (n => {
-                const thisCell = cellMap[n.posX][n.posY];
-                //Add colours based on type
-                thisCell.classList.add(`entity-nearby-${n.name.toLowerCase()}`);
-            })
-
-    }
-    //cellMap[oldPos[0]][oldPos[1]].parentElement.classList.remove("active-player-in-cell");
-}
 
 //Updates logic
 async function updateGameScene() {
@@ -453,7 +431,7 @@ async function updateGameScene() {
 
             //Can't spell for 5 cents
             //https://verb.woxikon.se/sv/l%C3%A4ka
-            factoidP.innerHTML += " Katten läkte dina sår!"
+            factoidP.innerHTML += "<br> 🐈 Katten återställde din hälsa ❤️‍🩹"
 
             playerHealth = maxPlayerHealth;
             updatePlayerHealth();
@@ -510,7 +488,8 @@ function updateEnemyHealth() {
 }
 function updatePlayerHealth() {
     if(playerHealth===0){
-       entityImage.src = monthyPythonGif + `?reload=${performance.now()}`;
+        entityImage.classList.add("hidden")
+        mainGameWindow.src = monthyPythonGif + `?reload=${performance.now()}`;
         setTimeout(loseGame, 4000)    }
     var playerHealthDisplay = document.getElementById("player_health_display")
     playerHealthDisplay.innerHTML = "Hälsa: " + playerHealth;
@@ -585,7 +564,6 @@ function endBattleEncoubter() {
     clearEntity();
     redrawEntities();
     buildPlayerButton();
-    nearbyEnteties();
     return;
 }
 
