@@ -41,6 +41,8 @@ function buildMenu(){
     ulList.classList.add("ul_spaced")
 
     mainMenu.appendChild(ulList);
+    mainMenu.prepend(h2Title);
+    mainMenu.prepend(h1Title);
     centeredDiv.appendChild(mainMenu);
 
    
@@ -62,6 +64,7 @@ function aboutGame(){
     }
 
     let info = document.createElement("p");
+    
     info.id="info"
 
 
@@ -70,9 +73,12 @@ function aboutGame(){
   API:er som används är;<br>
   Frågesport: https://opentdb.com/ <br>
   Katt fakta: https://catfact.ninja/ <br>
-  Gif:en är från: Gilliam, T & Jones, T. (Regissörer). (1975). Monty Python and the Holy Grail [Film]. EMI Films. <br>
-  Fiender är jag, katterna är Andreas och Kalles.
+  Gif:en är från; <br>Gilliam, T & Jones, T. (Regissörer). (1975). Monty Python and the Holy Grail [Film]. EMI Films. <br>
+  Fiender är antingen jag, eller från Minecraft; <br>
+  Mojang Studios. (2011) Minecraft (26.1.2) [Datorspel] https://www.minecraft.net/sv-se <br>
+  Katterna är Andreas, Erikas och Kalles.
 
 `;
+info.classList.add("spaced_p");
     gameLocation.appendChild(info);
 }

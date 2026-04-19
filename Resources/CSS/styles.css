@@ -1,8 +1,21 @@
-html,
-body {
-    background-color: rgb(37, 37, 37);
+html,body{
+        font-family: 'Open-Dyslexic', sans-serif;
+        color: white;
+
+}
+body::before {
     font-family: 'Open-Dyslexic', sans-serif;
-    color: white;
+    content: "";
+    position: fixed;
+    inset: 0;
+
+    background-image: url("/Resources/Imgs/bgMagic.png");
+    background-size: cover;
+    background-position: center;
+
+    filter: blur(20px);
+    transform: scale(1.1); /* prevents blur edge clipping */
+    z-index: -1;
 }
 
 .centerdList {
@@ -52,13 +65,8 @@ li {
 .gridElement{
     width: 50%;
 }
-.gameScreen{
-    min-width: 520px;
-    max-width: 960px;
-    width: auto;
-    border-radius: 20px;
-    filter: blur(20px);
-}
+
+
 .entityImage{
     max-height: 400px;
     max-width: 400px;
@@ -80,7 +88,12 @@ transform: scale(1.1);
     top: 20%;
     width: fit-content;
 }
-
+.gameScreen{
+    max-width: 800px;
+    max-height: 800px;
+    width: auto;
+    border-radius: 20px;
+}
 .gameTable{
     border-collapse: collapse;
     border-spacing: 0;
@@ -109,13 +122,22 @@ transform: scale(1.1);
     text-align: center;
     background-color: transparent;
 }
-.gameButton{
-      font-family: 'Open-Dyslexic', sans-serif;
-      font-size: 40px;
+
+.gameButton {
+    font-family: 'Open-Dyslexic', sans-serif;
+    max-width: 600px;
+    font-size: 40px;
+
+    overflow-wrap: break-word;
+    word-break: break-word;
+
+    display: inline-block;
+
     color: white;
     background-color: black;
 }
-.settingButton{
+
+.settingButton {
      font-family: 'Open-Dyslexic', sans-serif;
       font-size: 20px;
     color: white;
@@ -162,6 +184,14 @@ transform: scale(1.1);
     aspect-ratio: 1 / 1; 
     width: 33%;
     padding: 0;
+}
+.spaced_p{
+   margin-top:25px;
+   padding: 50px;
+}
+.spaced_p p{
+    margin: 10px;
+    padding: 50px;
 }
 
 @media (max-width: 768px) {
