@@ -47,133 +47,12 @@ const buttonMapPositions = [
     [2, 1]
 ];
 
-const catUrls =
-[
-    "Resources/Imgs/Cat_imgs/637504925_1335737565027348_2711308338909549589_n.jpg",
-    "Resources/Imgs/Cat_imgs/660767968_917762301081010_9115556837267146554_n.jpg",
-    "Resources/Imgs/Cat_imgs/664289471_1269822081362012_8331023428841532884_n.jpg",
-    "Resources/Imgs/Cat_imgs/664314779_4295383360710403_6088586368347165983_n.jpg",
-    "Resources/Imgs/Cat_imgs/664407134_1566596684441549_5811764716995801580_n.jpg",
-    "Resources/Imgs/Cat_imgs/664736669_1256136733401406_7196935068568418556_n.jpg",
-    "Resources/Imgs/Cat_imgs/668725798_1924485681519500_3053834524083633537_n.jpg",
-    "Resources/Imgs/Cat_imgs/674355909_3663844083757492_1608850253477360552_n.jpg",
-    "Resources/Imgs/Cat_imgs/674289537_2489377444853863_8398338929150350460_n.jpg",
-    "Resources/Imgs/Cat_imgs/674282111_1544716550592483_7888726547957021478_n.jpg",
-    "Resources/Imgs/Cat_imgs/672058427_1512018353848697_1784022992676750907_n.jpg",
-    "Resources/Imgs/Cat_imgs/671917859_2077870696436880_3634519222949420882_n.jpg",
-    "Resources/Imgs/Cat_imgs/671482879_2066345033959054_1830653845744358347_n.jpg",
-    "Resources/Imgs/Cat_imgs/672246585_1490957996012889_5473808342241986718_n.jpg",
-    "Resources/Imgs/Cat_imgs/672698888_971797435310351_3830883337602556168_n.jpg",
-    "Resources/Imgs/Cat_imgs/674269607_977601484735101_6987560780554890258_n.jpg",
-    "Resources/Imgs/Cat_imgs/676611456_1457976455344828_2842205839786196458_n.jpg",
-    "Resources/Imgs/Cat_imgs/670949033_1944228476185719_1861560299095997069_n.jpg",
-    "Resources/Imgs/Cat_imgs/670498323_838273165981259_6238886998631735477_n.jpg",
-    "Resources/Imgs/Cat_imgs/668697765_1619328522682189_7460610787278644291_n.jpg",
-    "Resources/Imgs/Cat_imgs/670815812_2776012699450960_351813636283348826_n.jpg",
-    "Resources/Imgs/Cat_imgs/673648097_1137751025158707_2384731684045986050_n.jpg",
-    "Resources/Imgs/Cat_imgs/674269607_977601484735101_6987560780554890258_n.jpg",
-    "Resources/Imgs/Cat_imgs/672151500_971211542103187_6015264400719865680_n.jpg"
-]
-
-const bgUrls =[
-    "Resources/Imgs/Bg_imgs/7sUvju2B.jpg",
-    "Resources/Imgs/Bg_imgs/ciooWP2n.jpg",
-    "Resources/Imgs/Bg_imgs/gfbKm-XN.jpg",
-    "Resources/Imgs/Bg_imgs/Hs_JMe0S.jpg",
-    "Resources/Imgs/Bg_imgs/leWuoHQD.jpg",
-    "Resources/Imgs/Bg_imgs/oF6wHfan.jpg",
-    "Resources/Imgs/Bg_imgs/rzJbTJKy.jpg",
-    "Resources/Imgs/Bg_imgs/vLr7IfSE.jpg"
-];
-
-const monthyPythonGif = "Resources/Imgs/The_Bridge_of_Death_Monty_Python_and_the_Holy_Grail.gif"
-
-
 //specify size
 const sizeParameter = 9;
 
 //first element is x axis
 //second is y axis
 let playerPos = [0, 0];
-
-class Entity {
-    constructor(id, name, imgSrc, hp, attack, posX, posY, spawnChance) {
-        this.id = id
-        this.name = name;
-        this.imgSrc = imgSrc;
-        this.hp = hp;
-        this.attack = attack;
-        this.posX = posX;
-        this.posY = posY;
-        this.spawnChance = spawnChance;
-    }
-
-    move(priorToMovementSnap, reservedSpots) {
-        //Handle enteties we want to move, i e zombies or other
-        let zomnbie = this.name.includes("Z");
-        if (zomnbie) {
-            moveTowardsPlayer(this, priorToMovementSnap, reservedSpots);
-        }
-        let traveler = this.name.includes("r")
-        if (traveler) {
-            moveToUnoccupiedSpot(this, priorToMovementSnap, reservedSpots);
-        }
-        let cat = this.name.includes("C")
-        if(cat){
-            //Static, stay on spot
-            console.log("meeeow")
-            reservedSpots[this.posX][this.posY] = true;
-        }
-
-    }
-
-}
-class Quiz {
-    constructor(question, correctAnswer, wrongAnswers) {
-        this.question = question;
-        this.correctAnswer = correctAnswer;
-        this.wrongAnswers = wrongAnswers;
-    }
-}
-
-
-const entityTypes = [
-
-    {
-        name: "Zombie",
-        imgSrc: "Resources/Imgs/zombie.png",
-        hp: 2,
-        attack: 1,
-        spawnChance: 0.7
-    },
-    {
-        name: "Cat",
-        imgSrc: "Resources/Imgs/car.png",
-        hp: 99,
-        attack: 99,
-        spawnChance: 0.7
-    },
-    {
-        name: "Traveler",
-        imgSrc: "Resources/Imgs/notme.png",
-        hp: 1,
-        attack: 99,
-        spawnChance: 0.7
-    },
-
-];
-
-//Cheat mode to test everything
-function cheat() {
-
-    console.log("Changing cheat mode")
-    cheatModeActivated = cheatModeActivated === 1 ? 0 : 1;
-    redrawEntities();
-}
-function oscarModeActivationStatus(){
-    oscarMode = oscarMode === 1 ? 0: 1;
-    redrawEntities();
-}
 
 //Timer starts after pressing "start"
 function startTimer() {
@@ -358,172 +237,6 @@ function updateStats() {
     catStats.textContent = "Katter på kartan: " + catCount; ""
 }
 
-function moveTowardsPlayer(zombieEntity, priorToMovementSnap, reservedSpots) {
-    //Player X: 5 | Zombie X: 3
-    //Result 5 -3 => 2
-    //Player Y: 10 | Zombie Y : 2
-    //Result 10-2 => 8
-    //Bigger numner is prioritized
-    let dZombieX = playerPos[0] - zombieEntity.posX;
-    let dZombieY = playerPos[1] - zombieEntity.posY;
-
-    let newZombiePosX = zombieEntity.posX;
-    let newZombiePosY = zombieEntity.posY;
-    //Use math.abs to just get a tile number difference
-    //I.E ignore if its to the left or right, up or down at start
-    //Math.Abs returns absolute number from input value
-    //Math.abs(5) returns 5
-    //Math.abs(-3) returns 3
-    //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs 
-
-    const randomMovement = Math.floor(Math.random() * 5);
-    if (randomMovement <= 1) {
-        console.log("random movement")
-        if (randomMovement === 0) {
-
-            const left = Math.floor(Math.random() * 2)
-            if (left === 1) {
-                newZombiePosX--;
-            }
-            else {
-                newZombiePosX++;
-            }
-        }
-        else if (randomMovement === 1) {
-            const up = Math.floor(Math.random() * 2)
-            if (up === 1) {
-                newZombiePosY--;
-            }
-            else {
-                newZombiePosY++;
-            }
-        }
-    }
-    else {
-
-        //So here, if X distance is higher than Y distance
-        if (Math.abs(dZombieX) > Math.abs(dZombieY)) {
-
-            //If the difference is negative, move left
-            if (dZombieX < 0) {
-                newZombiePosX--;
-            }
-            //If the difference is in the positives, move right
-            else if (dZombieX > 0) {
-                newZombiePosX++;
-            }
-            //Neutral, at same axis pos more or less
-            else {
-            }
-        }
-        else {
-            //Zombie goes up in the table
-            if (dZombieY < 0) {
-                newZombiePosY--;
-            }
-            //If player is below
-            //Move down
-            else if (dZombieY > 0) {
-                newZombiePosY++;
-            }
-            else {
-                //Don't move here either
-            }
-        }
-    }
-    //Make sure its within params of the table
-    newZombiePosX = Math.max(0, Math.min(sizeParameter - 1, newZombiePosX));
-    newZombiePosY = Math.max(0, Math.min(sizeParameter - 1, newZombiePosY));
-
-    //Check if spot is reserved, if it is, quit operation
-    if (reservedSpots[newZombiePosX][newZombiePosY]) {
-        return;
-    }
-
-    //Spots reserved by this entity
-    reservedSpots[newZombiePosX][newZombiePosY] = true;
-    zombieEntity.posX = newZombiePosX;
-    zombieEntity.posY = newZombiePosY;
-
-}
-function moveToUnoccupiedSpot(movingEntity, priorToMovementSnap, reservedSpots) {
-    //Copy array
-    const directions = [...cardinalDirections];
-    //Fisher yates random function
-    //https://www.w3schools.com/js/tryit.asp?filename=tryjs_array_sort_random2
-    for (let i = directions.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        let k = directions[i];
-
-        directions[i] = directions[j];
-        directions[j] = k;
-    }
-
-    for (const direction of directions) {
-
-        //Save current to modify, or not modify later
-        let newPosX = movingEntity.posX;
-        let newPosY = movingEntity.posY;
-
-        //Up in the table
-        if (direction == "North") {
-            newPosY--;
-        }
-        //Down
-        if (direction == "South") {
-            newPosY++;
-        }
-        //Left
-        if (direction == "West") {
-            newPosX--;
-        }
-        //Right
-        if (direction == "East") {
-            newPosX++;
-        }
-        //Stand still
-        if (direction == "Stand Still") {
-            console.log("Standing still")
-            //We reserve our own space and stand still
-            reservedSpots[newPosX][newPosY] = true;
-            return;
-        }
-
-        //Within bounds
-        if (
-            newPosX < 0 || newPosY < 0 ||
-            newPosX >= sizeParameter ||
-            newPosY >= sizeParameter
-        ) {
-            continue;
-        }
-
-        //Occupied slot
-        const occupied = priorToMovementSnap.find(e => e.x === newPosX && e.y === newPosY);
-
-        //Not occupied
-        //And no other entity has already planned to move there
-        //If not occupied, but there's something there, then we can't move
-        if (!occupied && !reservedSpots[newPosX][newPosY]) {
-            movingEntity.posX = newPosX;
-            movingEntity.posY = newPosY;
-
-            //This spot is now occupied
-            reservedSpots[newPosX][newPosY] = true;
-            return;
-        }
-
-        //Stay still
-        //Re roll function to try and move again?
-    }
-
-}
-function getRandomCatPic(){
-
-    shuffle(catUrls);
-     const index = Math.floor(Math.random() * catUrls.length);
-    return catUrls[index];
-}
 //Just create entities by top properties/settings
 function createEntities() {
     let entityId = 0;
@@ -548,28 +261,7 @@ function createEntities() {
     }
 
 }
-function getEntity(entityName, entityId) {
 
-
-    const index = entityTypes.findIndex(e => e.name.toLowerCase() === entityName.toLowerCase());
-    const entityTemplate = entityTypes[index];
-
-    const randomCords = getRandomPosition();
-
-    //Return from that index => can return cat
-    let entity = new Entity
-        (
-            entityId,
-            entityTemplate.name,
-            entityTemplate.imgSrc,
-            entityTemplate.hp,
-            entityTemplate.attack,
-            randomCords[0],
-            randomCords[1]
-        )
-    return entity;
-
-}
 //Handler as in "handle this function"
 function buildCoordinalDirectionButton(string, handler) {
     var buttonToReturn = document.createElement("input");
@@ -630,11 +322,6 @@ function movePlayer(oldPos, newPos) {
     mainGameWindow.src = randomBackground()
 
     drawNearbyEntitiesIcons();
-}
-function randomBackground() {
-    shuffle(bgUrls);
-    const index = Math.floor(Math.random() * bgUrls.length);
-    return bgUrls[index];
 }
 //New turn allows to register when player is on a entity
 //Moves enemies
@@ -766,12 +453,10 @@ async function updateGameScene() {
 
             //Can't spell for 5 cents
             //https://verb.woxikon.se/sv/l%C3%A4ka
-            factoidP.innerHTML += "; Katten läkte dina sår!"
+            factoidP.innerHTML += " Katten läkte dina sår!"
 
             playerHealth = maxPlayerHealth;
             updatePlayerHealth();
-
-           
 
             let gameDiv = document.getElementById("gameArea");
             gameDiv.appendChild(factoidP);
@@ -812,29 +497,7 @@ function buildBattleButton(flavourText, damage) {
     buttonToReturn.classList.add("gameButton");
     return buttonToReturn;
 }
-function attackEnemy(event) {
 
-    if (currentEntity) {
-        const button = event.target;
-        currentEntity.hp -= button.dataset.damage;
-        addToBattleLog("Spelare attackerar!")
-        updateEnemyHealth();
-        if (currentEntity.hp <= 0) {
-            addToBattleLog("Spelare vinner!");
-            setTimeout(endBattleEncoubter, 1000);
-        }
-        else if(playerHealth===0){
-            
-           entityImage.src = monthyPythonGif + `?reload=${performance.now()}`;
-
-        setTimeout(loseGame, 4000)
-        }
-        else {
-            setTimeout(battleTurn, 1000);
-
-        }
-    }
-}
 function loseGame() {
     let gameDiv = document.getElementById("gameArea");
     gameDiv.innerHTML = "";
@@ -926,15 +589,7 @@ function endBattleEncoubter() {
     return;
 }
 
-function shuffle(inputArray) {
-    for (let i = inputArray.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        let k = inputArray[i];
 
-        inputArray[i] = inputArray[j];
-        inputArray[j] = k;
-    }
-}
 function winGame() {
     let gameDiv = document.getElementById("gameArea");
     alert("Du vinner!")
@@ -988,40 +643,6 @@ function buildQuizButtons(quiz) {
 
 
 }
-//From API call, throw in the answer (string) and if its correct or not
-function buildQuizButton(answer, isCorrect) {
-    var buttonToReturn = document.createElement("input");
-    buttonToReturn.setAttribute("type", "button");
-    buttonToReturn.setAttribute("value", answer);
-    buttonToReturn.dataset.isCorrect = isCorrect;
-    buttonToReturn.onclick = answerQuestion;
-    buttonToReturn.classList.add("gameButton");
-    return buttonToReturn;
-}
-
-
-//From button, check if input has isCorrect
-function answerQuestion(event) {
-
-    const gameDiv = document.getElementById("gameArea");
-    const button = event.target;
-
-    if (button.dataset.isCorrect === "true") {
-        console.log("Correct!");
-        document.getElementById("question").remove();
-        document.getElementById("button_map").remove();
-        buildPlayerButton();
-        clearEntity();
-
-    } else {
-
-        console.log("Wrong!");
-        entityImage.src = monthyPythonGif;
-        entityImage.src = monthyPythonGif + `?reload=${performance.now()}`;
-        setTimeout(loseGame, 4000)
-        //Game over
-    }
-}
 
 //Remove after quiz
 function clearEntity() {
@@ -1071,7 +692,6 @@ function goEast() {
     }
 
 }
-
 
 //Give a random position, if its not occupied
 function getRandomPosition() {
@@ -1134,50 +754,3 @@ function getRandomEntity(entityId) {
     }
 }
 
-
-//frågesport api: https://opentdb.com/api_config.php
-async function getCatFact() {
-    const url = "https://catfact.ninja/fact?max_length=60";
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Response status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log(result);
-        return result.fact;
-
-    } catch (error) {
-        console.error(error.message);
-    }
-}
-//Get traveler quiz
-async function getTravelerQuiz(params) {
-    const url = "https://opentdb.com/api.php?amount=1&type=multiple";
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Response status: ${response.status}`);
-        }
-        const result = await response.json();
-
-        let question = result.results[0].question;
-        let wrongAnswers = result.results[0].incorrect_answers;
-        let correctAnswer = result.results[0].correct_answer;
-        if (cheatModeActivated) {
-            console.log(correctAnswer)
-
-        }
-
-        let quiz = new Quiz(
-            question,
-            correctAnswer,
-            wrongAnswers
-        );
-        return quiz;
-
-    } catch (error) {
-        console.error(error.message);
-    }
-}
