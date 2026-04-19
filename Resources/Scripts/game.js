@@ -111,7 +111,7 @@ function fillGameArea() {
     var playerHealthDisplay = document.createElement("p")
     playerHealthDisplay.id = "player_health_display"
     playerHealth = maxPlayerHealth;
-    playerHealthDisplay.innerHTML = "Hälsa: " + playerHealth;
+    playerHealthDisplay.innerHTML = "💖 Hälsa: " + playerHealth;
     //Clear at start
     gameDiv.innerHTML = "";
 
@@ -484,7 +484,7 @@ function loseGame() {
 }
 function updateEnemyHealth() {
     const enemyHealth = document.getElementById("enemy_health")
-    enemyHealth.innerHTML = "Fiendes hälsa: " + currentEntity.hp;
+    enemyHealth.innerHTML = "💖 Fiendes hälsa: " + currentEntity.hp;
 }
 function updatePlayerHealth() {
     if(playerHealth===0){
@@ -492,7 +492,7 @@ function updatePlayerHealth() {
         mainGameWindow.src = monthyPythonGif + `?reload=${performance.now()}`;
         setTimeout(loseGame, 4000)    }
     var playerHealthDisplay = document.getElementById("player_health_display")
-    playerHealthDisplay.innerHTML = "Hälsa: " + playerHealth;
+    playerHealthDisplay.innerHTML = "💖 Hälsa: " + playerHealth;
 }
 
 function addToBattleLog(input) {
@@ -516,7 +516,7 @@ async function getBattleButtons(enemy) {
     //Build question element
     const enemyHealth = document.createElement("p");
     enemyHealth.id = "enemy_health"
-    enemyHealth.innerHTML = "Fiendes hälsa: " + enemy.hp;
+    enemyHealth.innerHTML = "💖 Fiendes hälsa: " + enemy.hp;
 
     const battleLog = document.createElement("p");
     battleLog.id = "battle_log"

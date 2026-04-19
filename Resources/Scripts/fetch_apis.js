@@ -72,8 +72,8 @@ function answerQuestion(event) {
     } else {
 
         console.log("Wrong!");
-        entityImage.src = monthyPythonGif;
-        entityImage.src = monthyPythonGif + `?reload=${performance.now()}`;
+        entityImage.classList.add("hidden")
+        mainGameWindow.src = monthyPythonGif + `?reload=${performance.now()}`;
         setTimeout(loseGame, 4000)
         //Game over
     }
