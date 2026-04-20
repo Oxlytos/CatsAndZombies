@@ -81,7 +81,7 @@ function attackEnemy(event) {
             
            entityImage.src = monthyPythonGif + `?reload=${performance.now()}`;
 
-        setTimeout(loseGame, 4000)
+        setTimeout(loseGame, 5000)
         }
         else {
             setTimeout(battleTurn, 1000);

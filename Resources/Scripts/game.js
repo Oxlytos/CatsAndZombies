@@ -492,7 +492,7 @@ function updatePlayerHealth() {
     if(playerHealth===0){
         entityImage.classList.add("hidden")
         mainGameWindow.src = monthyPythonGif + `?reload=${performance.now()}`;
-        setTimeout(loseGame, 4000)    }
+        setTimeout(loseGame, 5000)    }
     var playerHealthDisplay = document.getElementById("player_health_display")
     playerHealthDisplay.innerHTML = "💖 Hälsa: " + playerHealth;
 }
