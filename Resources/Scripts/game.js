@@ -6,7 +6,7 @@ let oscarMode = false;
 
 //the graphics
 let cellMap = [];
-const activeEntities = [];
+let activeEntities = [];
 let mainGameWindow;
 
 //Adjust as needed
@@ -83,6 +83,7 @@ function startTimer() {
 function fillGameArea() {
 
     //Resets for each session
+    activeEntities=[];
      cellMap = [];
    
 
